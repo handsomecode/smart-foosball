@@ -24,22 +24,21 @@ void setup() {
   Serial.begin(9600);
   initializeArduinoPins();
   writeDigit(0);
-  attachInterrupt(0, resetScore, RISING);
-  attachInterrupt(1, increaseScore, RISING);
-  attachInterrupt(2, decreaseScore, CHANGE);
+//  attachInterrupt(0, resetScore, RISING);
+//  attachInterrupt(1, increaseScore, RISING);
+//  attachInterrupt(2, decreaseScore, CHANGE);
 }
 
 void loop() {
 
-  if (currentScore > 9) {
-    currentScore = 0;
-    writeDigit(currentScore);
-  }
-
   int currentLdrValue = analogRead(ldrPin);
-  //Serial.println(currentLdrValue);
+  Serial.println(currentLdrValue);
   if (currentLdrValue < lastLdrValue - SCORE_TRESHOLD) {
-    writeDigit(++currentScore);
+    ++currentScore;
+    if (currentScore > 9) {
+      currentScore = 0;
+    }
+    writeDigit(currentScore);
     delay(1000);
   }
   lastLdrValue = currentLdrValue;
@@ -87,22 +86,20 @@ void increaseScore() {
 
 void decreaseScore() {
   if (currentScore > 0) {
-    currentDecrButton = debounce(lastDecrButton, decrButtonPin);
+    currentDecrButton = debounce(decrButtonPin);
     Serial.println(currentDecrButton);
-    if(lastDecrButton == LOW && currentDecrButton == HIGH){
+//    if(lastDecrButton == LOW && currentDecrButton == HIGH){
+  if(currentDecrButton == HIGH){
       currentScore--;
       writeDigit(currentScore);
     }
-    lastDecrButton = digitalRead(decrButtonPin);
+//    lastDecrButton = digitalRead(decrButtonPin);
   }
 }
 
-boolean debounce(boolean last, int pin) {
+boolean debounce(int pin) {
+  delay(5);
   boolean current = digitalRead(pin);
-  if(last != current) {
-    delay(5);
-    current = digitalRead(pin);
-  }
   return current;
 }
 
