@@ -1,19 +1,5 @@
 #include <Bounce2.h>
-#include "handsomeKiker.h"
-
-//TODO
-/*
- * Больше меньше
- * Финал игры
- * Победная музыка
- * ДОлгое нажатие
- * Мигание
- * Ошибка
- * Изменени натсроек
- * Рефракторинг
- * ОБщий сброс
- * Динамический порог отдельно для каждого датчика
- */
+#include "handsomeKicker.h"
 
 static volatile int finalScore;
 
@@ -66,7 +52,7 @@ void setup() {
 void loop()
 {
 
-  Serial.print('.');
+  Serial.println();
   teamA -> updateButtons();
   teamB -> updateButtons();
   teamA -> updateGate();
