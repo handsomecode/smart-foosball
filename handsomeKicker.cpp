@@ -61,9 +61,8 @@ Team::Team(Display* _teamDisplay, Gate* _teamGate, byte _incrButtonPin, byte _de
   incrButtonPin = _incrButtonPin;
   decrButtonPin = _decrButtonPin;
   tonePin = _tonePin;
-  debouncerIncrButton = new Bounce();
-  debouncerDecrButton = new Bounce();
   endGame = false;
+  buttonsGroup_ = new ButtonsGroup(incrButtonPin,decrButtonPin);
 }
 
 void Team::increaseScore() {
@@ -86,13 +85,8 @@ void Team::resetScore() {
 void Team::setup() {
   teamDisplay->setup();
   teamGate->setup();
-  debouncerIncrButton->attach(incrButtonPin);
-  debouncerIncrButton->interval(BUTTON_BOUNCE_TIME);
-  pinMode(incrButtonPin, INPUT_PULLUP);
-  debouncerDecrButton->attach(decrButtonPin);
-  debouncerDecrButton->interval(BUTTON_BOUNCE_TIME);
-  pinMode(decrButtonPin, INPUT_PULLUP);
   pinMode(tonePin, OUTPUT);
+  buttonsGroup_->setup();
   reset();
 }
 
@@ -106,19 +100,16 @@ void Team::updateGate() {
 
 void Team::updateButtons() {
 
-  debouncerIncrButton->update();
-  debouncerDecrButton->update();
-
-  int incrButtonValue = debouncerIncrButton->read();
-  int decrButtonValue = debouncerDecrButton->read();
-  if ( incrButtonValue == HIGH && decrButtonValue == HIGH ) {
+  buttonsGroup_->update();
+ 
+  if ( buttonsGroup_->isDoublePress() ) {
     //resetScore();
     reset();
   }
-  if (debouncerIncrButton->fell()) {
+  if (buttonsGroup_->isIncreasePress()) {
     increaseScore();
   }
-  if (debouncerDecrButton->fell()) {
+  if (buttonsGroup_->isDecreasePress()) {
     decreaseScore();
   }
 }
@@ -149,6 +140,61 @@ byte Team::getScore() {
   return score;
 }
 
+//==================================== ButtonsGroup =====================================
+ButtonsGroup::ButtonsGroup(byte incrButtonPin, byte decrButtonPin) {
+  incrButtonPin_ = incrButtonPin;
+  decrButtonPin_ = decrButtonPin;
+  debouncerIncrButton_ = new Bounce();
+  debouncerDecrButton_ = new Bounce();
+}
+void ButtonsGroup::setup() {
+  debouncerIncrButton_->attach(incrButtonPin_);
+  debouncerIncrButton_->interval(BUTTON_BOUNCE_TIME);
+  pinMode(incrButtonPin_, INPUT_PULLUP);
+  debouncerDecrButton_->attach(decrButtonPin_);
+  debouncerDecrButton_->interval(BUTTON_BOUNCE_TIME);
+  pinMode(decrButtonPin_, INPUT_PULLUP);
+}
+void ButtonsGroup::update() {
+  debouncerIncrButton_->update();
+  debouncerDecrButton_->update();
+  int incrButtonValue_ = debouncerIncrButton_->read();
+  int decrButtonValue_ = debouncerDecrButton_->read();
+}
+
+bool ButtonsGroup::isIncreasePress() {
+  if (debouncerIncrButton_->fell()) {
+    return true;
+  }
+  return false;
+}
+bool ButtonsGroup::isDecreasePress() {
+  if (debouncerDecrButton_->fell()) {
+    return true;
+  }
+  return false;
+}
+bool ButtonsGroup::isDoublePress() {
+  if ( incrButtonValue_ == HIGH && decrButtonValue_ == HIGH ) {
+    return true;
+  }
+  return false;
+}
+bool ButtonsGroup::isIcreaseLongPress() {
+  //TODO
+  return false;
+}
+bool ButtonsGroup::isDecreaseLongPress() {
+  //TODO
+  return false;
+}
+bool ButtonsGroup::isDoubleLongPress() {
+  //TODO
+  return false;
+}
+
+
+//==================================== Referee =====================================
 
 
 Referee::Referee(Display* displayA, Display* displayB, Gate* gateA, Gate* gateB, byte incrButtonPinA, byte decrButtonPinA, byte tonePinA, byte incrButtonPinB, byte decrButtonPinB, byte tonePinB) {
@@ -186,8 +232,16 @@ void Referee::update() {
       teamA_->celebrateVictory();
     }
   }
+}
 
 
+void Referee::assignWinner(){
+  //gameStop
+  //toneMusik
+}
 
+void Referee::gameStop(){
+  //gateA-Stop
+  //fgateB-Stop
 }
 

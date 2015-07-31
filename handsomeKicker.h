@@ -31,6 +31,35 @@ class Gate {
     int lastLdrValue;
     unsigned long bounce_tag;
 };
+//==================================== ButtonsGroup =====================================
+class ButtonsGroup {
+    /*
+     * Класс обертка вокруг двух кнопок
+     * - фиксирует нажатие одной кнопки
+     * - нажатие двух кнопок (c учетом дребезга)
+     * - долгое нажатие одной или двух кнопок
+     */
+  public:
+  ButtonsGroup(byte incrButtonPin, byte decrButtonPin);
+    bool isIncreasePress();
+    bool isDecreasePress();
+    bool isDoublePress();
+    bool isIcreaseLongPress();
+    bool isDecreaseLongPress();
+    bool isDoubleLongPress();
+    void setup();
+    void update();
+    protected:
+    byte incrButtonPin_;
+    byte decrButtonPin_;
+    Bounce* debouncerIncrButton_;
+    Bounce* debouncerDecrButton_;
+    int incrButtonValue_;
+    int decrButtonValue_; 
+    //const BUTTON_BOUNCE_TIME =5;
+
+};
+
 //==================================== Team =====================================
 #define BUTTON_BOUNCE_TIME 5
 class Team {
@@ -53,42 +82,23 @@ class Team {
     byte tonePin;
     Display* teamDisplay;
     Gate* teamGate;
-    Bounce* debouncerIncrButton;
-    Bounce* debouncerDecrButton;
-};
-
-//==================================== ButtonGroup =====================================
-class ButtonGroup {
-    /*
-     * Класс обертка вокруг двух кнопок
-     * - фиксирует нажатие одной кнопки
-     * - нажатие двух кнопок (c учетом дребезга)
-     * - долгое нажатие одной или двух кнопок
-     */
-  public:
-    bool isIncreasePress();
-    bool isDecreasePress();
-    bool isDoublePress();
-    bool isIcreaseLongPress();
-    bool isDecreaseLongPress();
-    bool isDoubleLongPress();
-
+    ButtonsGroup* buttonsGroup_;
 };
 
 //==================================== Game =====================================
-class Game {
-    /**
-     * Ограничение счета до 15 или 20 или 5 по 3
-     */
-  public:
-    void _start(); //инициализируем
-    void _stop(); // прекращаем считать
-    void update(); //обновляем компоненты, проверяем победные условия
-    void toneVictory(); //пищим победу
-  protected:
-    Team* teamA_;
-    Team* teamB_;
-};
+//class Game {
+//    /**
+//     * Ограничение счета до 15 или 20 или 5 по 3
+//     */
+//  public:
+//    void _start(); //инициализируем
+//    void _stop(); // прекращаем считать
+//    void update(); //обновляем компоненты, проверяем победные условия
+//    void toneVictory(); //пищим победу
+//  protected:
+//    Team* teamA_;
+//    Team* teamB_;
+//};
 
 //==================================== Referee =====================================
 /*
@@ -106,6 +116,10 @@ class Referee {
     void update();
 
   protected:
+
+    byte scoreA_;
+    byte scoreB_;
+  
     Display*      displayA_;
     Display*      displayB_;
     Gate*         gateA_;
@@ -113,6 +127,8 @@ class Referee {
     Team*         teamA_;
     Team*         teamB_;
     int finalScore;
+    void assignWinner();
+    void gameStop();
 
 
 };
