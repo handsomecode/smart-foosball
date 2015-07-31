@@ -120,6 +120,7 @@ void Team::updateButtons() {
     increaseScore();
   }
   if (debouncerDecrButton->fell()) {
+    Serial.println("DECR");
     decreaseScore();
   }
 }

@@ -51,7 +51,7 @@ void setup() {
 
 void loop()
 {
-  Serial.println();
+  Serial.print(".");
   teamA -> updateButtons();
   teamB -> updateButtons();
   teamA -> updateGate();
