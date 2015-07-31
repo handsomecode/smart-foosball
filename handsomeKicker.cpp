@@ -151,3 +151,43 @@ byte Team::getScore() {
 
 
 
+Referee::Referee(Display* displayA, Display* displayB, Gate* gateA, Gate* gateB, byte incrButtonPinA, byte decrButtonPinA, byte tonePinA, byte incrButtonPinB, byte decrButtonPinB, byte tonePinB) {
+  displayA_ = displayA;
+  displayB_ = displayB;
+  gateA_ = gateA;
+  gateB_ = gateB;
+  Team* teamA = new Team(displayA_, gateA_, incrButtonPinA, decrButtonPinA, tonePinA);
+  Team* teamB = new Team(displayB_, gateB_, incrButtonPinB, decrButtonPinB, tonePinB);
+
+}
+
+void Referee::setup() {
+  Serial.begin(9600);
+  teamA_->setup();
+  teamB_->setup();
+  finalScore = 15;
+}
+void Referee::update() {
+  Serial.println();
+  teamA_ -> updateButtons();
+  teamB_ -> updateButtons();
+  teamA_ -> updateGate();
+  teamB_ -> updateGate();
+  byte scoreA = teamA_->getScore();
+  byte scoreB = teamB_->getScore();
+  if (scoreA >= finalScore) {
+    if ( scoreA - scoreB > 1 ) {
+      teamB_->celebrateVictory();
+    }
+  }
+
+  if (scoreB >= finalScore) {
+    if ( scoreB - scoreA > 1 ) {
+      teamA_->celebrateVictory();
+    }
+  }
+
+
+
+}
+

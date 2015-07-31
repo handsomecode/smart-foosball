@@ -57,4 +57,65 @@ class Team {
     Bounce* debouncerDecrButton;
 };
 
+//==================================== ButtonGroup =====================================
+class ButtonGroup {
+    /*
+     * Класс обертка вокруг двух кнопок
+     * - фиксирует нажатие одной кнопки
+     * - нажатие двух кнопок (c учетом дребезга)
+     * - долгое нажатие одной или двух кнопок
+     */
+  public:
+    bool isIncreasePress();
+    bool isDecreasePress();
+    bool isDoublePress();
+    bool isIcreaseLongPress();
+    bool isDecreaseLongPress();
+    bool isDoubleLongPress();
+
+};
+
+//==================================== Game =====================================
+class Game {
+    /**
+     * Ограничение счета до 15 или 20 или 5 по 3
+     */
+  public:
+    void _start(); //инициализируем
+    void _stop(); // прекращаем считать
+    void update(); //обновляем компоненты, проверяем победные условия
+    void toneVictory(); //пищим победу
+  protected:
+    Team* teamA_;
+    Team* teamB_;
+};
+
+//==================================== Referee =====================================
+/*
+ *  Создает и удаляет объекты
+ *  Сбрасывает стол при простое
+ *  Меняет настройки игры
+ *  Управляет отображением на экране
+ */
+class Referee {
+
+  public:
+
+    Referee(Display* displayA, Display* displayB, Gate* GateA, Gate* GateB, byte incrButtonPinA, byte decrButtonPinA, byte tonePinA, byte incrButtonPinB, byte decrButtonPinB, byte tonePinB);
+    void setup();
+    void update();
+
+  protected:
+    Display*      displayA_;
+    Display*      displayB_;
+    Gate*         gateA_;
+    Gate*         gateB_;
+    Team*         teamA_;
+    Team*         teamB_;
+    int finalScore;
+
+
+};
+
+
 
