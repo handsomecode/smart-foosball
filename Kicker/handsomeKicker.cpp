@@ -1,5 +1,6 @@
 
 #include "handsomeKicker.h"
+#include "WinnerMelody.h"
 
 //==================================== Display =====================================
 Display::Display(int _dataPin, int _latchPin, int _clockPin) {
@@ -125,17 +126,7 @@ void Team::updateButtons() {
 
 void Team::celebrateVictory() {
   if (!endGame) {
-    tone(tonePin, 100, 1000);
-    delay(1000);
-    tone(tonePin, 200, 1000);
-    delay(1000);
-    tone(tonePin, 300, 1000);
-    delay(1000);
-    tone(tonePin, 400, 1000);
-    delay(1000);
-    tone(tonePin, 500, 1000);
-    delay(1000);
-    tone(tonePin, 700, 1000);
+    playMelody(tonePin);
     endGame = true;
   }
 }

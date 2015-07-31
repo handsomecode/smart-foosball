@@ -51,7 +51,6 @@ void setup() {
 
 void loop()
 {
-
   Serial.println();
   teamA -> updateButtons();
   teamB -> updateButtons();
@@ -61,17 +60,14 @@ void loop()
   byte scoreB = teamB->getScore();
   if (scoreA >= finalScore) {
     if ( scoreA - scoreB > 1 ) {
-      teamB->celebrateVictory();
+      teamA->celebrateVictory();
     }
   }
 
   if (scoreB >= finalScore) {
     if ( scoreB - scoreA > 1 ) {
-      teamA->celebrateVictory();
+      teamB->celebrateVictory();
     }
   }
-
-
-
 }
 
