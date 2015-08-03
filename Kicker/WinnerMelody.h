@@ -33,6 +33,9 @@
 #define  R     0      // Define a special note, 'R', to represent a rest
 
 //Star Wars Theme
-void playMelody(byte tonePin);
+void playStarWarsTheme(byte tonePin);
+
+//Star Wars Imperial March
+void playImperialMarch(byte tonePin);
 
 #endif

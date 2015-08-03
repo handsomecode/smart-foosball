@@ -1,16 +1,23 @@
+//based on this article http://courses.ischool.berkeley.edu/i262/s13/content/mariespliid/lab-5-star-wars-song-selector
+
 #include "WinnerMelody.h"
  
 byte speakerPin;
  
 // MELODIES and TIMING //
 //  melody[] is an array of notes, accompanied by beats[], 
-//  which sets each note's relative length (higher #, longer note) 
+//  which sets each note's relative length (higher #, longer note)
+
+// Melody 1: Star Wars Imperial March
+int imperialMarchMelody[] = {  a4, R,  a4, R,  a4, R,  f4, R, c5, R,  a4, R,  f4, R, c5, R, a4, R,  e5, R,  e5, R,  e5, R,  f5, R, c5, R,  g5, R,  f5, R,  c5, R, a4, R};
+int imperialMarchBeats[]  = {  50, 20, 50, 20, 50, 20, 40, 5, 20, 5,  60, 10, 40, 5, 20, 5, 60, 80, 50, 20, 50, 20, 50, 20, 40, 5, 20, 5,  60, 10, 40, 5,  20, 5, 60, 40};
  
 // Melody 2: Star Wars Theme
-int melody2[] = {  f4,  f4, f4,  a4s,   f5,  d5s,  d5,  c5, a5s, f5, d5s,  d5,  c5, a5s, f5, d5s, d5, d5s,   c5};
-int beats2[]  = {  21,  21, 21,  128,  128,   21,  21,  21, 128, 64,  21,  21,  21, 128, 64,  21, 21,  21, 128 }; 
+int starWarsThemeMelody[] = {  f4,  f4, f4,  a4s,   f5,  d5s,  d5,  c5, a5s, f5, d5s,  d5,  c5, a5s, f5, d5s, d5, d5s,   c5};
+int starWarsThemeBeats[]  = {  21,  21, 21,  128,  128,   21,  21,  21, 128, 64,  21,  21,  21, 128, 64,  21, 21,  21, 128 }; 
  
-int MAX_COUNT = sizeof(melody2) / 2; // Melody length, for looping.
+int MAX_COUNT_THEME = sizeof(starWarsThemeMelody) / 2; // Melody length, for looping.
+int MAX_COUNT_IMPERIAL_MARCH = sizeof(imperialMarchMelody) / 2;
  
 // Set overall tempo
 long tempo = 10000;
@@ -52,20 +59,30 @@ void playTone() {
   }                                 
 }
 
-void playMelody(byte tonePin) {
+void playMelody(byte tonePin, int* melody, int* beats, int melodyLength) {
   speakerPin = tonePin;
   pinMode(speakerPin, OUTPUT);
-  
-  for (int i = 0; i < MAX_COUNT; i++) {
-    toneM = melody2[i];
-    beat = beats2[i];
+
+  for (int i = 0; i < melodyLength; i++) {
+    toneM = melody[i];
+    beat = beats[i];
  
     // Set up timing
     duration = beat * tempo; 
  
+    //play toneM
     playTone(); 
 
     // A pause between notes
     delayMicroseconds(pause);
   }
 }
+
+void playStarWarsTheme(byte tonePin) {
+  playMelody(tonePin, starWarsThemeMelody, starWarsThemeBeats, MAX_COUNT_THEME);
+}
+
+void playImperialMarch(byte tonePin) {
+  playMelody(tonePin, imperialMarchMelody, imperialMarchBeats, MAX_COUNT_IMPERIAL_MARCH);
+}
+
