@@ -15,15 +15,19 @@ class Display {
     byte latchPin;//Пин подключеный к SRCLR (latch) входу SN74HC595N
     byte clockPin;//Пин подключеный к SRCLK (clock) входу SN74HC595N
 };
-//==================================== Gate =====================================
-
+//==================================== Detector =====================================
+/*
+ * Инкапсулирует работу с фоторезистором
+ *  - bounce
+ *  - goal detect
+ */
 //Порог фоторезистора считающийся как "Нет сигнала"
 #define HEALTH_TRESHOLD 50
 #define BOUNCE_INTERVAL 500
 
-class Gate {
+class Detector {
   public:
-    Gate(int _ldrPin);
+    Detector(int _ldrPin);
     void setup();
     bool update();
   protected:
@@ -40,7 +44,7 @@ class ButtonsGroup {
      * - долгое нажатие одной или двух кнопок
      */
   public:
-  ButtonsGroup(byte incrButtonPin, byte decrButtonPin);
+    ButtonsGroup(byte incrButtonPin, byte decrButtonPin);
     bool isIncreasePress();
     bool isDecreasePress();
     bool isDoublePress();
@@ -49,56 +53,60 @@ class ButtonsGroup {
     bool isDoubleLongPress();
     void setup();
     void update();
-    protected:
+  protected:
     byte incrButtonPin_;
     byte decrButtonPin_;
     Bounce* debouncerIncrButton_;
     Bounce* debouncerDecrButton_;
     int incrButtonValue_;
-    int decrButtonValue_; 
+    int decrButtonValue_;
     //const BUTTON_BOUNCE_TIME =5;
 
 };
 
+
+
 //==================================== Team =====================================
 #define BUTTON_BOUNCE_TIME 5
+/*
+ * Следит за своим счетом  и отображает изменение на своем дисплее
+ * Следит за своими кнопками
+ */
 class Team {
   public:
-    Team(Display* _teamDisplay, Gate* _teamGate, byte _incrButtonPin, byte _decrButtonPin, byte _tonePin);
+    Team(Display* _teamDisplay, Detector* _teamDetector, ButtonsGroup* buttonsGroup, byte _tonePin);
     void increaseScore();
     void decreaseScore();
     void resetScore();
     void setup();
-    void updateGate();
-    void updateButtons();
-    void celebrateVictory();
+    bool update();
     void reset();
     byte getScore();
-    bool endGame;
   protected:
     byte score;
-    byte incrButtonPin;
-    byte decrButtonPin;
     byte tonePin;
-    Display* teamDisplay;
-    Gate* teamGate;
+    Display* display_;
+    Detector* detector_;
     ButtonsGroup* buttonsGroup_;
 };
-
 //==================================== Game =====================================
-//class Game {
-//    /**
-//     * Ограничение счета до 15 или 20 или 5 по 3
-//     */
-//  public:
-//    void _start(); //инициализируем
-//    void _stop(); // прекращаем считать
-//    void update(); //обновляем компоненты, проверяем победные условия
-//    void toneVictory(); //пищим победу
-//  protected:
-//    Team* teamA_;
-//    Team* teamB_;
-//};
+class Game {
+    /**
+     * Ограничение счета до 15 или 20 или 5 по 3
+     */
+  public:
+    Game();
+    Game(byte finalScore);
+    void _start(); //инициализируем
+    void _stop(); // прекращаем считать
+    byte isGameOver(byte scoreA, byte scoreB);
+    bool isRun();
+
+  protected:
+    byte finalScore_;
+    bool gameRun_;
+
+};
 
 //==================================== Referee =====================================
 /*
@@ -111,24 +119,24 @@ class Referee {
 
   public:
 
-    Referee(Display* displayA, Display* displayB, Gate* GateA, Gate* GateB, byte incrButtonPinA, byte decrButtonPinA, byte tonePinA, byte incrButtonPinB, byte decrButtonPinB, byte tonePinB);
+    Referee(Display* displayA, Display* displayB, Detector* detectorA, Detector* detectorB, ButtonsGroup* buttonsGroupA, ButtonsGroup* buttonsGroupB, byte tonePinA, byte tonePinB);
     void setup();
     void update();
 
   protected:
 
-    byte scoreA_;
-    byte scoreB_;
-  
     Display*      displayA_;
     Display*      displayB_;
-    Gate*         gateA_;
-    Gate*         gateB_;
+    Detector*         detectorA_;
+    Detector*         detectorB_;
+    ButtonsGroup* buttonsGroupA_;
+    ButtonsGroup* buttonsGroupB_;
     Team*         teamA_;
     Team*         teamB_;
-    int finalScore;
-    void assignWinner();
-    void gameStop();
+    Game* currentGame_;
+    bool settingsMode_;
+
+    void celebrateVictory(byte winner);
 
 
 };

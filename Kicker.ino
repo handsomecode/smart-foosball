@@ -25,9 +25,12 @@ int tonePinB = 12;
 
 Display* displayA = new Display(dataPinA, latchPinA, clockPinA);
 Display* displayB = new Display(dataPinB, latchPinB, clockPinB);
-Gate* gateA = new Gate(ldrPinA);
-Gate* gateB = new Gate(ldrPinB);
-Referee* referee = new Referee(displayA, displayB, gateA, gateB, incrButtonPinA, decrButtonPinA, tonePinA, incrButtonPinB, decrButtonPinB, tonePinB);
+Detector* detectorA = new Detector(ldrPinA);
+Detector* detectorB = new Detector(ldrPinB);
+ButtonsGroup* buttonsGroupA = new ButtonsGroup(incrButtonPinA, decrButtonPinA);
+ButtonsGroup* buttonsGroupB = new ButtonsGroup(incrButtonPinB, decrButtonPinB);
+
+Referee* referee = new Referee(displayA, displayB, detectorA, detectorB, buttonsGroupA, buttonsGroupB, tonePinA, tonePinB);
 
 void setup() {
   referee->setup();

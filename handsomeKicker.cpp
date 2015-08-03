@@ -27,19 +27,19 @@ void Display::setup() {
 }
 
 
-//==================================== Gate =====================================
+//==================================== Detector =====================================
 
-Gate::Gate(int _ldrPin) {
+Detector::Detector(int _ldrPin) {
   ldrPin = _ldrPin;
   bounce_tag = 0;
 }
 
-void Gate::setup() {
+void Detector::setup() {
   lastLdrValue = analogRead(ldrPin);
   bounce_tag = millis();
 }
 
-bool Gate::update() {
+bool Detector::update() {
   bool result = false;
   int currentLdrValue = analogRead(ldrPin);
   if ( lastLdrValue - currentLdrValue >  HEALTH_TRESHOLD ) {
@@ -52,88 +52,76 @@ bool Gate::update() {
   lastLdrValue = currentLdrValue;
   return result;
 }
-
 //==================================== Team =====================================
 
-Team::Team(Display* _teamDisplay, Gate* _teamGate, byte _incrButtonPin, byte _decrButtonPin, byte _tonePin) {
-  teamDisplay = _teamDisplay;
-  teamGate = _teamGate;
-  incrButtonPin = _incrButtonPin;
-  decrButtonPin = _decrButtonPin;
+Team::Team(Display* _teamDisplay, Detector* _teamDetector, ButtonsGroup* buttonsGroup, byte _tonePin) {
+  display_ = _teamDisplay;
+  detector_ = _teamDetector;
   tonePin = _tonePin;
-  endGame = false;
-  buttonsGroup_ = new ButtonsGroup(incrButtonPin,decrButtonPin);
+  buttonsGroup_ = buttonsGroup;
+  score=11;
 }
 
 void Team::increaseScore() {
   score++;
-  teamDisplay->displayNumber(score);
+  display_->displayNumber(score);
 }
 
 void Team::decreaseScore() {
+  Serial.print("Decrease");
   if (score > 0) {
     score--;
-    teamDisplay->displayNumber(score);
+    display_->displayNumber(score);
   }
 }
 void Team::resetScore() {
   score = 0;
-  teamDisplay->displayNumber(score);
+  display_->displayNumber(score);
 }
 
 
 void Team::setup() {
-  teamDisplay->setup();
-  teamGate->setup();
   pinMode(tonePin, OUTPUT);
-  buttonsGroup_->setup();
-  reset();
+  display_->displayNumber(11);
 }
 
 
-void Team::updateGate() {
-  if (teamGate->update()) {
+bool Team::update() {
+  bool result = false;
+  if (detector_->update()) {
     increaseScore();
     tone(tonePin, 500, 700);
+    result = true;
   }
-}
-
-void Team::updateButtons() {
-
   buttonsGroup_->update();
- 
-  if ( buttonsGroup_->isDoublePress() ) {
-    //resetScore();
-    reset();
-  }
   if (buttonsGroup_->isIncreasePress()) {
     increaseScore();
   }
   if (buttonsGroup_->isDecreasePress()) {
     decreaseScore();
   }
+  return result;
 }
 
-void Team::celebrateVictory() {
-  if (!endGame) {
-    tone(tonePin, 100, 1000);
-    delay(1000);
-    tone(tonePin, 200, 1000);
-    delay(1000);
-    tone(tonePin, 300, 1000);
-    delay(1000);
-    tone(tonePin, 400, 1000);
-    delay(1000);
-    tone(tonePin, 500, 1000);
-    delay(1000);
-    tone(tonePin, 700, 1000);
-    endGame = true;
-  }
-}
+//void Team::celebrateVictory() {
+//  if (!endGame) {
+//    tone(tonePin, 100, 1000);
+//    delay(1000);
+//    tone(tonePin, 200, 1000);
+//    delay(1000);
+//    tone(tonePin, 300, 1000);
+//    delay(1000);
+//    tone(tonePin, 400, 1000);
+//    delay(1000);
+//    tone(tonePin, 500, 1000);
+//    delay(1000);
+//    tone(tonePin, 700, 1000);
+//    endGame = true;
+//  }
+//}
 
 void Team::reset() {
   resetScore();
-  endGame = false;
 }
 
 byte Team::getScore() {
@@ -197,51 +185,122 @@ bool ButtonsGroup::isDoubleLongPress() {
 //==================================== Referee =====================================
 
 
-Referee::Referee(Display* displayA, Display* displayB, Gate* gateA, Gate* gateB, byte incrButtonPinA, byte decrButtonPinA, byte tonePinA, byte incrButtonPinB, byte decrButtonPinB, byte tonePinB) {
+Referee::Referee(Display* displayA, Display* displayB, Detector* detectorA, Detector* detectorB, ButtonsGroup* buttonsGroupA, ButtonsGroup* buttonsGroupB, byte tonePinA, byte tonePinB){
   displayA_ = displayA;
   displayB_ = displayB;
-  gateA_ = gateA;
-  gateB_ = gateB;
-  Team* teamA = new Team(displayA_, gateA_, incrButtonPinA, decrButtonPinA, tonePinA);
-  Team* teamB = new Team(displayB_, gateB_, incrButtonPinB, decrButtonPinB, tonePinB);
+  detectorA_ = detectorA;
+  detectorB_ = detectorB;
+  buttonsGroupA_ = buttonsGroupA;
+  buttonsGroupB_ = buttonsGroupB;
+  Team* teamA = new Team(displayA_, detectorA_, buttonsGroupA_, tonePinA);
+  Team* teamB = new Team(displayB_, detectorB_, buttonsGroupB_, tonePinB);
 
 }
 
 void Referee::setup() {
   Serial.begin(9600);
+  displayA_->setup();
+  displayB_->setup();
+  detectorA_->setup();
+  detectorB_->setup();
+  buttonsGroupA_->setup();
+  buttonsGroupB_->setup();
+  
   teamA_->setup();
   teamB_->setup();
-  finalScore = 15;
+  
+  currentGame_ = new Game();
+  currentGame_->_start();
+  
+  settingsMode_ = false;
 }
+
 void Referee::update() {
-  Serial.println();
-  teamA_ -> updateButtons();
-  teamB_ -> updateButtons();
-  teamA_ -> updateGate();
-  teamB_ -> updateGate();
-  byte scoreA = teamA_->getScore();
-  byte scoreB = teamB_->getScore();
-  if (scoreA >= finalScore) {
+Serial.println();
+  buttonsGroupA_->update();
+  buttonsGroupB_->update();
+
+  if (settingsMode_) { // Settings mode on
+    if ( buttonsGroupA_->isDoubleLongPress() || buttonsGroupB_->isDoubleLongPress() ) {  // Exit from settings mode
+      settingsMode_ = false;
+    } else { // Continue settings mode
+
+      // TODO Settings mode ===========
+
+    } // end setings mode
+  } else { //Main mode on
+
+    if ( buttonsGroupA_->isDoubleLongPress() || buttonsGroupB_->isDoubleLongPress() ) { //Exit from main mode
+      settingsMode_ = true;
+    } else { // Continue main mode
+
+      // Main mode ================
+      if (currentGame_->isRun()) { // Game submode +++++++++
+        if ( buttonsGroupA_->isDoublePress() || buttonsGroupB_->isDoublePress() ) { // Game restart
+          delete currentGame_;
+          currentGame_ = new Game();
+          currentGame_->_start();
+        } else { // Game not restart
+          byte winner = currentGame_->isGameOver(teamA_->getScore(), teamB_->getScore());
+          if ( winner != 0  ) { //Game end
+            currentGame_->_stop();
+            celebrateVictory(winner);
+          } else { //Game not end
+            //Do nothing or maybe refresh dislay
+            teamA_->update();
+            teamB_->update();
+          }
+        } // end game submode
+      } else { // Idle submode +++++++++
+        // TODO Banner display
+      }
+    } //end main mode
+  }
+}
+
+
+void Referee::celebrateVictory(byte winner){
+  //if ( winner = 1 )
+  
+}
+
+
+//==================================== Game =====================================
+
+Game::Game() {
+  gameRun_ = false;
+  finalScore_ = 15;
+}
+Game::Game(byte finalScore) {
+  finalScore_ = finalScore;
+  gameRun_ = false;
+}
+
+void Game::_start() {
+  gameRun_ = true;
+
+}
+void Game::_stop() {
+  gameRun_ = false;
+}
+byte Game::isGameOver(byte scoreA, byte scoreB) {
+
+  if (scoreA >= finalScore_) {
     if ( scoreA - scoreB > 1 ) {
-      teamB_->celebrateVictory();
+      return 2;
     }
   }
-
-  if (scoreB >= finalScore) {
+  if (scoreB >= finalScore_) {
     if ( scoreB - scoreA > 1 ) {
-      teamA_->celebrateVictory();
+      return 1;
     }
   }
+
+  return 0;
+}
+bool Game::isRun() {
+  return gameRun_;
 }
 
 
-void Referee::assignWinner(){
-  //gameStop
-  //toneMusik
-}
-
-void Referee::gameStop(){
-  //gateA-Stop
-  //fgateB-Stop
-}
 
