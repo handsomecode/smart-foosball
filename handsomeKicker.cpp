@@ -35,8 +35,12 @@ Detector::Detector(int _ldrPin) {
 }
 
 void Detector::setup() {
+// Serial.begin(9600);
   lastLdrValue = analogRead(ldrPin);
   bounce_tag = millis();
+  Serial.println();
+  Serial.print("LDR- ");
+  Serial.println(lastLdrValue);
 }
 
 bool Detector::update() {
@@ -59,10 +63,11 @@ Team::Team(Display* _teamDisplay, Detector* _teamDetector, ButtonsGroup* buttons
   detector_ = _teamDetector;
   tonePin = _tonePin;
   buttonsGroup_ = buttonsGroup;
-  score=11;
+  score=0;
 }
 
 void Team::increaseScore() {
+  Serial.print("Increase");
   score++;
   display_->displayNumber(score);
 }
@@ -80,13 +85,8 @@ void Team::resetScore() {
 }
 
 
-void Team::setup() {
-  pinMode(tonePin, OUTPUT);
-  display_->displayNumber(11);
-}
-
-
 bool Team::update() {
+  Serial.println("update");
   bool result = false;
   if (detector_->update()) {
     increaseScore();
@@ -146,8 +146,9 @@ void ButtonsGroup::setup() {
 void ButtonsGroup::update() {
   debouncerIncrButton_->update();
   debouncerDecrButton_->update();
-  int incrButtonValue_ = debouncerIncrButton_->read();
-  int decrButtonValue_ = debouncerDecrButton_->read();
+  //Serial.println("sdfsdfg");
+  //incrButtonValue_ = debouncerIncrButton_->read();
+  //decrButtonValue_ = debouncerDecrButton_->read();
 }
 
 bool ButtonsGroup::isIncreasePress() {
@@ -192,31 +193,30 @@ Referee::Referee(Display* displayA, Display* displayB, Detector* detectorA, Dete
   detectorB_ = detectorB;
   buttonsGroupA_ = buttonsGroupA;
   buttonsGroupB_ = buttonsGroupB;
-  Team* teamA = new Team(displayA_, detectorA_, buttonsGroupA_, tonePinA);
-  Team* teamB = new Team(displayB_, detectorB_, buttonsGroupB_, tonePinB);
+  tonePinA_ = tonePinA;
+  tonePinB_ = tonePinB;
+  Team* teamA = new Team(displayA_, detectorA_, buttonsGroupA_, tonePinA_);
+  Team* teamB = new Team(displayB_, detectorB_, buttonsGroupB_, tonePinB_);
+
+  currentGame_ = new Game();
+  currentGame_->_start();
+  settingsMode_ = false;
 
 }
 
 void Referee::setup() {
-  Serial.begin(9600);
   displayA_->setup();
   displayB_->setup();
   detectorA_->setup();
   detectorB_->setup();
   buttonsGroupA_->setup();
   buttonsGroupB_->setup();
-  
-  teamA_->setup();
-  teamB_->setup();
-  
-  currentGame_ = new Game();
-  currentGame_->_start();
-  
-  settingsMode_ = false;
+  pinMode(tonePinA_, OUTPUT);
+  pinMode(tonePinB_, OUTPUT);
 }
 
 void Referee::update() {
-Serial.println();
+//Serial.println();
   buttonsGroupA_->update();
   buttonsGroupB_->update();
 
@@ -224,35 +224,55 @@ Serial.println();
     if ( buttonsGroupA_->isDoubleLongPress() || buttonsGroupB_->isDoubleLongPress() ) {  // Exit from settings mode
       settingsMode_ = false;
     } else { // Continue settings mode
-
       // TODO Settings mode ===========
 
     } // end setings mode
   } else { //Main mode on
-
     if ( buttonsGroupA_->isDoubleLongPress() || buttonsGroupB_->isDoubleLongPress() ) { //Exit from main mode
       settingsMode_ = true;
     } else { // Continue main mode
-
+//Serial.println("1"); 
       // Main mode ================
       if (currentGame_->isRun()) { // Game submode +++++++++
+        //Serial.println("2"); 
         if ( buttonsGroupA_->isDoublePress() || buttonsGroupB_->isDoublePress() ) { // Game restart
           delete currentGame_;
           currentGame_ = new Game();
           currentGame_->_start();
         } else { // Game not restart
+          //Serial.println("3"); 
           byte winner = currentGame_->isGameOver(teamA_->getScore(), teamB_->getScore());
+          //Serial.print("winner ");  Serial.println(winner); 
           if ( winner != 0  ) { //Game end
             currentGame_->_stop();
             celebrateVictory(winner);
           } else { //Game not end
             //Do nothing or maybe refresh dislay
-            teamA_->update();
-            teamB_->update();
+          //  teamA_->update();
+          //  teamB_->update();
+              buttonsGroupA_->update();
+              buttonsGroupB_->update();
+  if (buttonsGroupA_->isIncreasePress()) {
+    displayA_->displayNumber(88);
+  }
+  if (buttonsGroupA_->isDecreasePress()) {
+    displayA_->displayNumber(77);
+  }
+  if (buttonsGroupB_->isIncreasePress()) {
+    displayB_->displayNumber(88);
+  }
+  if (buttonsGroupB_->isDecreasePress()) {
+    displayB_->displayNumber(77);
+  }
+
+
+
+  
           }
         } // end game submode
       } else { // Idle submode +++++++++
         // TODO Banner display
+        Serial.println("idle"); 
       }
     } //end main mode
   }
@@ -284,7 +304,7 @@ void Game::_stop() {
   gameRun_ = false;
 }
 byte Game::isGameOver(byte scoreA, byte scoreB) {
-
+  return 0;
   if (scoreA >= finalScore_) {
     if ( scoreA - scoreB > 1 ) {
       return 2;

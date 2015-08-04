@@ -78,7 +78,6 @@ class Team {
     void increaseScore();
     void decreaseScore();
     void resetScore();
-    void setup();
     bool update();
     void reset();
     byte getScore();
@@ -131,6 +130,8 @@ class Referee {
     Detector*         detectorB_;
     ButtonsGroup* buttonsGroupA_;
     ButtonsGroup* buttonsGroupB_;
+    byte tonePinA_;
+    byte tonePinB_;
     Team*         teamA_;
     Team*         teamB_;
     Game* currentGame_;

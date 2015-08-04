@@ -33,11 +33,15 @@ ButtonsGroup* buttonsGroupB = new ButtonsGroup(incrButtonPinB, decrButtonPinB);
 Referee* referee = new Referee(displayA, displayB, detectorA, detectorB, buttonsGroupA, buttonsGroupB, tonePinA, tonePinB);
 
 void setup() {
+  Serial.begin(9600);
   referee->setup();
 }
 
 void loop()
-{
+{ 
   referee->update();
+  //displayA->displayNumber(0);
+  //displayB->displayNumber(66);
+  //delay(2000);
 }
 
