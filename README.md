@@ -1,2 +1,2 @@
-# kicker-auto-score
-Kicker auto goals tracking based on Arduino Mega 2560
+# Smart Foosball
+Foosball goals tracking based on Arduino. Android foosball scoreboard app displays the game result.
