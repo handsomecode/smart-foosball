@@ -5,7 +5,7 @@
 
 //Порог фоторезистора считающийся как "Нет сигнала"
 #define HEALTH_TRESHOLD 50
-#define BOUNCE_INTERVAL 500
+#define BOUNCE_INTERVAL 2000
 
 class BallDetector {
   
