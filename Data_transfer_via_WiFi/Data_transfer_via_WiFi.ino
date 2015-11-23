@@ -1,4 +1,4 @@
-String response;
+String response = "";
 String request = "";
 
 #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
@@ -9,21 +9,13 @@ String request = "";
 #define SCORE_2 "score_2="
 #define POST_PREFIX "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
 #define TIMEOUT 10000
-unsigned long timeout;
 
-String GET_REQUEST = "GET /?score_1=10&score_2=2 HTTP/1.0\r\n";
-String POST_REQUEST = "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 21\r\n\r\nscore_1=2&score_2=45";
-
-byte size = POST_REQUEST.length() + 2;
-byte getRequestSize = GET_REQUEST.length() + 2;
-byte postRequestSize = POST_REQUEST.length() + 2;
+unsigned long timeout = 0;
 
 bool isSent = false;
 
 void setup()
 {
-  response = "";
-  timeout = 0;
   Serial.begin(115200);
   Serial1.begin(115200); // your esp's baud rate might be different
   Serial.write("---\n");
@@ -81,31 +73,11 @@ void loop()
   }
 }
 
-void sendGetRequestMeta() {
-   Serial1.println(COMMAND_START_TCP_CONNECTION);
-//        Serial.println(COMMAND_START_TCP_CONNECTION); //log
-
-   delay(50);
-   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
-   Serial1.println(getRequestSize);
-}
-
-void sendGetRequest() {
-  Serial1.println(GET_REQUEST);
-}
-
-void sendPostRequestMeta() {
-  Serial1.println(COMMAND_START_TCP_CONNECTION);
-//        Serial.println(COMMAND_START_TCP_CONNECTION); //log
-
-   delay(500);
-   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
-   Serial1.println(postRequestSize);
-}
-
 void createPostRequest() {
   Serial1.println(COMMAND_START_TCP_CONNECTION);
-//        Serial.println(COMMAND_START_TCP_CONNECTION); //log
+
+  //log
+//        Serial.println(COMMAND_START_TCP_CONNECTION);
 
    delay(500);
    Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
@@ -124,7 +96,7 @@ void testPostRequest() {
 
 String getPostRequestString(){
   String body = SCORE_1;
-  body += String(random(16));
+  body += String(random(20));
   body += AMP;
   body += SCORE_2;
   body += String(random(16));
