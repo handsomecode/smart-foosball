@@ -31,6 +31,8 @@ private:
   void createPostRequest();
   void sendPostRequest();
   String getPostRequestString();
+  String getRestartRequestString();
+  void createRestartRequest();
 
   byte maxScore;
   byte scoreA;

@@ -40,20 +40,13 @@ void Game::update(){
 //      Serial.println(response);
     }  
   }
-
-//    if(isSending && response.lastIndexOf("OK") != -1) {
-//        Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
-//        request = getPostRequestString();
-//        Serial1.println(request.length());
-//        isSending = false;
-//    }
     
   if(response.substring(response.length()-2, response.length()-1) == ">") {
           sendPostRequest();
           response = "";
    }
       
-//	handleControlPanels();
+	handleControlPanels();
 	handleBallDetectors();
 
 	if(!configModeEnabled) {
@@ -100,8 +93,7 @@ void Game::createPostRequest() {
 //        Serial.println(COMMAND_START_TCP_CONNECTION);
 
    delay(300);
-   
-//   while(response.lastIndexOf("OK") == -1);
+
    Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
    request = getPostRequestString();
    Serial1.println(request.length());
@@ -114,7 +106,6 @@ void Game::sendPostRequest() {
 
 String Game::getPostRequestString(){
   String body = SCORE_1;
-//  body += String(random(16));
   body += String(scoreA);
   body += AMP;
   body += SCORE_2;
@@ -125,7 +116,32 @@ String Game::getPostRequestString(){
   postRequest += CRLF;
   postRequest += CRLF;
   postRequest += body;
-//  Serial.println(postRequest);
+  return postRequest;
+}
+
+
+void Game::createRestartRequest() {
+  Serial1.println(COMMAND_START_TCP_CONNECTION);
+
+  //log
+//        Serial.println(COMMAND_START_TCP_CONNECTION);
+
+   delay(300);
+
+   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
+   request = getRestartRequestString();
+   Serial1.println(request.length());
+}
+
+String Game::getRestartRequestString() {
+  String body = "restart=";
+  body += "true";
+
+  String postRequest = POST_PREFIX;
+  postRequest += String(body.length());
+  postRequest += CRLF;
+  postRequest += CRLF;
+  postRequest += body;
   return postRequest;
 }
 //**********************************************
@@ -242,6 +258,7 @@ void Game::restart(){
 	scoreA = scoreB = 0;
 	victoryCountA = victoryCountB = 0;
 	gameStopped = false;
+  createRestartRequest();
 }
 
 void Game::increaseScoreA() {
@@ -254,7 +271,7 @@ void Game::increaseScoreB() {
 
 void Game::decreaseScoreA() {
 	if(scoreA > 0) {
-		scoreA--;  
+		scoreA--; 
 	}
 }
 
