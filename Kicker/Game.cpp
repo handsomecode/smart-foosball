@@ -30,7 +30,30 @@ Game::~Game() {
 }
 
 void Game::update(){
-	handleControlPanels();
+
+  if(Serial1.available()) // check if the esp is sending a message 
+  {
+    while(Serial1.available())
+    {
+      // The esp has data so display its output to the serial window 
+      response = Serial1.readString(); // read the next character.
+//      Serial.println(response);
+    }  
+  }
+
+//    if(isSending && response.lastIndexOf("OK") != -1) {
+//        Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
+//        request = getPostRequestString();
+//        Serial1.println(request.length());
+//        isSending = false;
+//    }
+    
+  if(response.substring(response.length()-2, response.length()-1) == ">") {
+          sendPostRequest();
+          response = "";
+   }
+      
+//	handleControlPanels();
 	handleBallDetectors();
 
 	if(!configModeEnabled) {
@@ -48,7 +71,7 @@ void Game::update(){
 				scoreA = scoreB = 0;
 				blinkScore();
 			} else {
-				playStarWarsTheme(tonePinA);
+//				playStarWarsTheme(tonePinA);
 				gameStopped = true;
 			}
 
@@ -61,21 +84,64 @@ void Game::update(){
 				scoreA = scoreB = 0;
 				blinkScore();
 			} else {
-				playImperialMarch(tonePinB);
+//				playImperialMarch(tonePinB);
 				gameStopped = true;
 			}
 		}	
 	}
 }
 
+//**********************************************
+void Game::createPostRequest() {
+  Serial1.println(COMMAND_START_TCP_CONNECTION);
+  isSending = true;
+
+  //log
+//        Serial.println(COMMAND_START_TCP_CONNECTION);
+
+   delay(300);
+   
+//   while(response.lastIndexOf("OK") == -1);
+   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
+   request = getPostRequestString();
+   Serial1.println(request.length());
+}
+
+void Game::sendPostRequest() {
+  Serial1.println(request);
+  Serial1.flush();
+}
+
+String Game::getPostRequestString(){
+  String body = SCORE_1;
+//  body += String(random(16));
+  body += String(scoreA);
+  body += AMP;
+  body += SCORE_2;
+  body += String(scoreB);
+
+  String postRequest = POST_PREFIX;
+  postRequest += String(body.length());
+  postRequest += CRLF;
+  postRequest += CRLF;
+  postRequest += body;
+//  Serial.println(postRequest);
+  return postRequest;
+}
+//**********************************************
+
 void Game::handleBallDetectors() {
 	if(ballDetectorA->isGoal()) {
 		increaseScoreA();
-		tone(tonePinA, 500, 700);
+    createPostRequest();
+//		tone(tonePinA, 500, 700);
+    
 	}
 	if(ballDetectorB->isGoal()) {
 		increaseScoreB();
-		tone(tonePinB, 500, 700);
+		createPostRequest();
+//		tone(tonePinB, 500, 700);
+    
 	}
 }
 

@@ -1,19 +1,21 @@
 String response = "";
 String request = "";
 
-#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
+//#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
+#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.234\",8080"
 #define COMMAND_SEND_MESSAGE_SIZE "AT+CIPSENDEX="
 #define AMP "&"
 #define CRLF "\r\n"
 #define SCORE_1 "score_1="
 #define SCORE_2 "score_2="
 #define POST_PREFIX "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
-#define TIMEOUT 10000
+#define TIMEOUT 5000
 
 unsigned long timeout = 0;
+int testCount = 0;
 
 bool isSent = false;
-
+bool isError = false;
 void setup()
 {
   Serial.begin(115200);
@@ -53,6 +55,18 @@ void loop()
           response = "";
       }
 
+//      if(response.lastIndexOf("ERROR") != -1) {
+////          sendPostRequest();
+//        isError = false;
+//          Serial.println(response.lastIndexOf("ERROR"));
+////          Serial1.println("AT+RST");
+//          Serial1.flush();
+//          
+//          response = "";
+//      } else {
+//        isError = true;
+//      }
+      
   
   if(Serial.available())
   {
@@ -79,7 +93,7 @@ void createPostRequest() {
   //log
 //        Serial.println(COMMAND_START_TCP_CONNECTION);
 
-   delay(500);
+   delay(300);
    Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
    request = getPostRequestString();
    Serial1.println(request.length());
@@ -96,10 +110,10 @@ void testPostRequest() {
 
 String getPostRequestString(){
   String body = SCORE_1;
-  body += String(random(20));
+  body += String(testCount);
   body += AMP;
   body += SCORE_2;
-  body += String(random(16));
+  body += String(testCount++);
 
   String postRequest = POST_PREFIX;
   postRequest += String(body.length());

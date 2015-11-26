@@ -27,6 +27,11 @@ private:
   byte getGameModesCount();
   void blinkScore();
 
+  /*wifi*/
+  void createPostRequest();
+  void sendPostRequest();
+  String getPostRequestString();
+
   byte maxScore;
   byte scoreA;
   byte scoreB;
@@ -75,6 +80,22 @@ private:
 
   byte tonePinA = 13;
   byte tonePinB = 12;
+
+  /*wifi >*/
+  String response = "";
+  String request = "";
+  
+//  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
+  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.234\",8080"
+  #define COMMAND_SEND_MESSAGE_SIZE "AT+CIPSENDEX="
+  #define AMP "&"
+  #define CRLF "\r\n"
+  #define SCORE_1 "score_1="
+  #define SCORE_2 "score_2="
+  #define POST_PREFIX "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+  bool isSending = false;
+  /*< wifi*/
+
 };
 
 #endif
