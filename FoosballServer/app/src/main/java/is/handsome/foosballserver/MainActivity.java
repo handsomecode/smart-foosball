@@ -19,8 +19,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.squareup.otto.Subscribe;
-
 import java.io.IOException;
 
 import is.handsome.foosballserver.server.Server;
@@ -100,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        BusProvider.getInstance().register(this);
         LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, new IntentFilter(Server.INTENT_FILTER_ACTION));
     }
 
@@ -126,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        BusProvider.getInstance().unregister(this);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataReceiver);
     }
 
@@ -134,12 +130,6 @@ public class MainActivity extends AppCompatActivity {
         WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
         int ip = wifiMgr.getConnectionInfo().getIpAddress();
         return Formatter.formatIpAddress(ip);
-    }
-
-    @SuppressWarnings("UnusedDeclaration") // Used by Otto
-    @Subscribe
-    public void onNewScoreReceived(ReceivedNewScoreEvent event) {
-        updateScoreViews(event.getScore_1(), event.getScore_2());
     }
 
     private void updateScoreViews(String score_1, String score_2) {

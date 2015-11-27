@@ -4,15 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.squareup.otto.Bus;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
-import is.handsome.foosballserver.BusProvider;
-import is.handsome.foosballserver.ReceivedNewScoreEvent;
 
 public class Server extends NanoHTTPD {
     private final static int PORT = 8080;
@@ -49,8 +45,6 @@ public class Server extends NanoHTTPD {
                 System.out.println("score_2 =" + score_2);
                 sendReceivedData(score_1, score_2);
             }
-//            Bus bus = BusProvider.getInstance();
-//            bus.post(new ReceivedNewScoreEvent(score_1, score_2));
         } catch (IOException e) {
             return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + e.getMessage());
         } catch (ResponseException e) {
