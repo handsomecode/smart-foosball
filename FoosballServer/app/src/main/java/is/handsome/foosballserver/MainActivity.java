@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, new IntentFilter(Server.INTENT_FILTER_ACTION));
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(dataReceiver, new IntentFilter(Server.INTENT_FILTER_ACTION));
     }
 
     @Override

@@ -21,7 +21,6 @@ public class Server extends NanoHTTPD {
     public static final String RESET = "reset_score";
     public static final int RESET_COMMAND = 1;
 
-
     public Server(Context context) throws IOException {
         super(PORT);
         this.context = context;
@@ -35,7 +34,7 @@ public class Server extends NanoHTTPD {
         try {
             session.parseBody(files);
             String restartCommand = session.getParms().get("restart");
-            if(restartCommand !=  null && restartCommand.equals("true")) {
+            if (restartCommand != null && restartCommand.equals("true")) {
                 System.out.println("reset score");
                 sendResetScoreCommand();
             } else {
