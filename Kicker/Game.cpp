@@ -60,7 +60,7 @@ void Game::update(){
       //check a game mode, if there is a 3/5 mode, handle it
 			if(modeIndex == getGameModesCount() - 1 && victoryCountA < 1) {
 				victoryCountA++;
-				tone(tonePinA, 950, 500);
+//				tone(tonePinA, 950, 500);
 				scoreA = scoreB = 0;
 				blinkScore();
 			} else {
@@ -73,7 +73,7 @@ void Game::update(){
       //check a game mode, if there is a 3/5 mode, handle it
 			if(modeIndex == getGameModesCount() - 1 && victoryCountB < 1) {
 				victoryCountB++;
-				tone(tonePinB, 950, 500);
+//				tone(tonePinB, 950, 500);
 				scoreA = scoreB = 0;
 				blinkScore();
 			} else {

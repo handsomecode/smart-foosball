@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 updateScoreViews(intent.getStringExtra(Server.SCORE_A),
                         intent.getStringExtra(Server.SCORE_B));
+                playSoundEffect();
             }
         }
     };
@@ -157,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateScoreViews(String score_1, String score_2) {
         scoreATextView.setText(score_1);
         scoreBTextView.setText(score_2);
-        playSoundEffect();
     }
 
     private void playSoundEffect() {

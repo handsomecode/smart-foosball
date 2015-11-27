@@ -88,13 +88,14 @@ private:
   String request = "";
   
 //  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
-  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.234\",8080"
+//  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.186\",8080"
+  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"192.168.43.1\",8080"
   #define COMMAND_SEND_MESSAGE_SIZE "AT+CIPSENDEX="
   #define AMP "&"
   #define CRLF "\r\n"
   #define SCORE_1 "score_1="
   #define SCORE_2 "score_2="
-  #define POST_PREFIX "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+  #define POST_PREFIX "POST /index.php HTTP/1.1\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
   bool isSending = false;
   /*< wifi*/
 

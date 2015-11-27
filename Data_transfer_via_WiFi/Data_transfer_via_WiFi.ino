@@ -2,17 +2,19 @@ String response = "";
 String request = "";
 
 //#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
-#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.234\",8080"
+//#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.234\",8080"
+#define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"192.168.43.1\",8080"
 #define COMMAND_SEND_MESSAGE_SIZE "AT+CIPSENDEX="
 #define AMP "&"
 #define CRLF "\r\n"
 #define SCORE_1 "score_1="
 #define SCORE_2 "score_2="
-#define POST_PREFIX "POST /index.php HTTP/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
-#define TIMEOUT 5000
+#define POST_PREFIX "POST /index.php HTTP/1.1\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
+#define TIMEOUT 20000
+#define KEEP_ALIVE "Connection: Keep-Alive"
 
 unsigned long timeout = 0;
-int testCount = 0;
+int testCount = 2;
 
 bool isSent = false;
 bool isError = false;
@@ -39,9 +41,24 @@ void loop()
 //        Serial.println("need to close connection");
 //      }
 
+
+      
       if(!isSent || (millis() - timeout) > TIMEOUT){
-//      if(!isSent){
+//        Serial.println(response.lastIndexOf("CLOSED"));
+//      if(response.lastIndexOf("CLOSED") == -1){
+//      if(!isSent) {
+//        createPostRequest();
+//      } else {
+//        sendNextRequest();
+//      }
+//          if(response.lastIndexOf("ALREADY CONNECT") != -1) {
+//            sendNextRequest();
+////              Serial.println("already connected");
+//          } //else {
+//            createPostRequest();
+//          }
           createPostRequest();
+        
         isSent = true;
         Serial.print("timeout before = ");
         Serial.println(timeout);
@@ -51,6 +68,7 @@ void loop()
       }
       
       if(response.substring(response.length()-2, response.length()-1) == ">") {
+//        Serial.println("!!!");
           sendPostRequest();
           response = "";
       }
@@ -88,12 +106,20 @@ void loop()
 }
 
 void createPostRequest() {
+  Serial1.flush();
   Serial1.println(COMMAND_START_TCP_CONNECTION);
 
   //log
 //        Serial.println(COMMAND_START_TCP_CONNECTION);
 
    delay(300);
+   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
+   request = getPostRequestString();
+   Serial1.println(request.length());
+}
+
+void sendNextRequest() {
+  delay(300);
    Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
    request = getPostRequestString();
    Serial1.println(request.length());
@@ -117,6 +143,8 @@ String getPostRequestString(){
 
   String postRequest = POST_PREFIX;
   postRequest += String(body.length());
+//  postRequest += CRLF;
+//  postRequest += KEEP_ALIVE;
   postRequest += CRLF;
   postRequest += CRLF;
   postRequest += body;
