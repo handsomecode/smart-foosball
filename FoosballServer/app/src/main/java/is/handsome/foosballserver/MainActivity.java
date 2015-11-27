@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +14,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Formatter;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView scoreATextView;
     private TextView scoreBTextView;
     private Button resetButton;
+
+    private SoundPool soundPool;
+    boolean soundLoaded;
+    private int soundId;
 
     private Server server;
 
@@ -71,6 +78,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // Set the hardware buttons to control the music
+        this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        // Load the sound
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId,
+                                       int status) {
+                soundLoaded = true;
+            }
+        });
+        soundId = soundPool.load(this, R.raw.gol_sound, 1);
     }
 
     @Override
@@ -136,5 +157,20 @@ public class MainActivity extends AppCompatActivity {
     private void updateScoreViews(String score_1, String score_2) {
         scoreATextView.setText(score_1);
         scoreBTextView.setText(score_2);
+        playSoundEffect();
+    }
+
+    private void playSoundEffect() {
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        float actualVolume = (float) audioManager
+                .getStreamVolume(AudioManager.STREAM_MUSIC);
+        float maxVolume = (float) audioManager
+                .getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        float volume = actualVolume / maxVolume;
+        // Is the sound already?
+        if (soundLoaded) {
+            soundPool.play(soundId, volume, volume, 1, 0, 1f);
+            Log.i("Test", "Played sound");
+        }
     }
 }
