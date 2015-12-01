@@ -20,6 +20,10 @@ public class Server extends NanoHTTPD {
     public static final String INTENT_FILTER_ACTION = "score_received";
     public static final String RESET = "reset_score";
     public static final int RESET_COMMAND = 1;
+    public static final String SIDE = "side";
+    public static final int SIDE_A = 0;
+    public static final int SIDE_B = 1;
+    public static final int SIDE_UNDEFINED = 3;
 
     public Server(Context context) throws IOException {
         super(PORT);
@@ -34,9 +38,13 @@ public class Server extends NanoHTTPD {
         try {
             session.parseBody(files);
             String restartCommand = session.getParms().get("restart");
+            String side = session.getParms().get("side");
             if (restartCommand != null && restartCommand.equals("true")) {
                 System.out.println("reset score");
                 sendResetScoreCommand();
+            } if(side != null) {
+                int s = side.equals("A") ? SIDE_A : side.equals("B") ? SIDE_B : SIDE_UNDEFINED;
+                sendReceivedData(s);
             } else {
                 String score_1 = session.getParms().get("score_1");
                 String score_2 = session.getParms().get("score_2");
@@ -66,6 +74,12 @@ public class Server extends NanoHTTPD {
         Intent intent = new Intent(INTENT_FILTER_ACTION);
         intent.putExtra(SCORE_A, scoreA);
         intent.putExtra(SCORE_B, scoreB);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    private void sendReceivedData(int side) {
+        Intent intent = new Intent(INTENT_FILTER_ACTION);
+        intent.putExtra(SIDE, side);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 }

@@ -14,22 +14,33 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
-        android:id="@+id/info_text_view"
+        android:id="@+id/ip_address_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="TEST"/>
+
+    <TextView
+        android:id="@+id/game_timer_text_view"
+        android:layout_width="150dp"
+        android:layout_height="48dp"
+        android:textSize="36sp"
+        android:gravity="center"
+        android:background="@drawable/st_reset_button_bg"
+        android:textColor="@android:color/background_light"
+        android:layout_centerHorizontal="true"/>
 
     <LinearLayout
         android:id="@+id/score_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:layout_marginTop="16dp"
-        android:layout_below="@+id/info_text_view"
+        android:layout_below="@+id/ip_address_text_view"
         android:layout_centerInParent="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="32dp"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/score_1_text_view"
+            android:id="@+id/score_A_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -44,23 +55,100 @@
             android:textSize="108sp"/>
 
         <TextView
-            android:id="@+id/score_2_text_view"
+            android:id="@+id/score_B_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="-"
             android:gravity="center"
+            android:text="-"
             android:textSize="108sp"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/control_buttons_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/score_linear_layout"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/start_game_button"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/st_reset_button_bg"
+            android:text="Начать новую игру"
+            android:textColor="@android:color/background_light"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="32dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/increase_score_a_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/st_reset_button_bg"
+                android:text="+"
+                android:textColor="@android:color/background_light"
+                android:textSize="36sp"/>
+
+            <Button
+                android:id="@+id/increase_score_b_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/st_reset_button_bg"
+                android:text="+"
+                android:textColor="@android:color/background_light"
+                android:textSize="36sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/decrease_score_a_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/st_reset_button_bg"
+                android:text="-"
+                android:textColor="@android:color/background_light"
+                android:textSize="48sp"/>
+
+            <Button
+                android:id="@+id/decrease_score_b_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/st_reset_button_bg"
+                android:text="-"
+                android:textColor="@android:color/background_light"
+                android:textSize="48sp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
     <Button
-        android:id="@+id/reset_button"
+        android:id="@+id/reset_score_button"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_below="@+id/score_linear_layout"
+        android:layout_below="@+id/control_buttons_linear_layout"
         android:layout_marginTop="16dp"
-        android:text="Cбросить счет"
         android:background="@drawable/st_reset_button_bg"
+        android:text="Cбросить счет"
         android:textColor="@android:color/background_light"
         android:textSize="18sp"/>
 </RelativeLayout>

@@ -8,45 +8,69 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.IOException;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import is.handsome.foosballserver.server.Server;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView scoreATextView;
-    private TextView scoreBTextView;
-    private Button resetButton;
+    private static final int TIME = 0 * 60 * 1000 + 12 * 1000;
+    private static final int MINUTE = 60;
+    private static final int UPDATE_INTERVAL = 1000;
+    private static final boolean NOT_RUN_AFTER_CREATION = false;
+
+    @Bind(R.id.score_A_text_view) TextView scoreATextView;
+    @Bind(R.id.score_B_text_view) TextView scoreBTextView;
+    @Bind(R.id.ip_address_text_view) TextView ipAddressTextView;
+    @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
 
     private SoundPool soundPool;
     boolean soundLoaded;
     private int soundId;
 
     private Server server;
+    private Score score;
+
+    private CountDownTimerWithPause countDownTimerWithPause = new CountDownTimerWithPause(TIME, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION) {
+        @Override
+        public void onTick(long millisUntilFinished) {
+            updateTimerView(millisUntilFinished);
+        }
+
+        @Override
+        public void onFinish() {
+            gameTimerTextView.setText("00:00");
+        }
+    };
 
     private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
-                updateScoreViews("0", "0");
-            } else {
-                updateScoreViews(intent.getStringExtra(Server.SCORE_A),
-                        intent.getStringExtra(Server.SCORE_B));
+            int side = intent.getIntExtra(Server.SIDE, -1);
+            if (side == Server.SIDE_A) {
+                score.increaseSideA();
+                updateScoreViews();
                 playSoundEffect();
+            } else if (side == Server.SIDE_B) {
+                score.increaseSideB();
+                updateScoreViews();
+                playSoundEffect();
+            } else if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
+                score.reset();
+                updateScoreViews();
             }
         }
     };
@@ -55,30 +79,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        scoreATextView = (TextView) findViewById(R.id.score_1_text_view);
-        scoreBTextView = (TextView) findViewById(R.id.score_2_text_view);
-        ((TextView) findViewById(R.id.info_text_view)).setText(getIpAddress());
-        resetButton = (Button) findViewById(R.id.reset_button);
-        resetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateScoreViews("-", "-");
-            }
-        });
+        ButterKnife.bind(this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        ipAddressTextView.setText(getIpAddress());
 
         // Set the hardware buttons to control the music
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -93,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         soundId = soundPool.load(this, R.raw.gol_sound, 1);
+
+        score = new Score();
     }
 
     @Override
@@ -149,15 +155,78 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataReceiver);
     }
 
-    public String getIpAddress() {
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.game_timer_text_view)
+    void onClickTimerView() {
+        if (countDownTimerWithPause.isRunning()) {
+            System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
+            countDownTimerWithPause.pause();
+        } else {
+            System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
+            countDownTimerWithPause.resume();
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.start_game_button)
+    void onClickStartGame() {
+        score.reset();
+        countDownTimerWithPause.cancel();
+        countDownTimerWithPause.create();
+        countDownTimerWithPause.resume();
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.increase_score_a_button)
+    void onClickIncreaseScoreA() {
+        score.increaseSideA();
+        updateScoreViews();
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.increase_score_b_button)
+    void onClickIncreaseScoreB() {
+        score.increaseSideB();
+        updateScoreViews();
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.decrease_score_a_button)
+    void onClickDecreaseScoreA() {
+        score.decreaseSideA();
+        updateScoreViews();
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.decrease_score_b_button)
+    void onClickDecreaseScoreB() {
+        score.decreaseSideB();
+        updateScoreViews();
+    }
+
+    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @OnClick(R.id.reset_score_button)
+    void onClickResetScore() {
+        score.reset();
+        updateScoreViews();
+    }
+
+    private String getIpAddress() {
         WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
         int ip = wifiMgr.getConnectionInfo().getIpAddress();
         return Formatter.formatIpAddress(ip);
     }
 
-    private void updateScoreViews(String score_1, String score_2) {
-        scoreATextView.setText(score_1);
-        scoreBTextView.setText(score_2);
+    private void updateTimerView(long millisUntilFinished) {
+        System.out.println(String.valueOf(millisUntilFinished) + " " + millisUntilFinished / (MINUTE * UPDATE_INTERVAL) + " " + (millisUntilFinished / UPDATE_INTERVAL) % MINUTE);
+        long minutes = millisUntilFinished / (MINUTE * UPDATE_INTERVAL);
+        long seconds = (millisUntilFinished / UPDATE_INTERVAL) % MINUTE;
+        gameTimerTextView.setText(String.format("%02d:%02d", minutes, seconds));
+    }
+
+    private void updateScoreViews() {
+        scoreATextView.setText(String.valueOf(score.getSideA()));
+        scoreBTextView.setText(String.valueOf(score.getSideB()));
     }
 
     private void playSoundEffect() {
@@ -173,4 +242,5 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Test", "Played sound");
         }
     }
+
 }

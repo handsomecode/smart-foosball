@@ -120,6 +120,25 @@ String Game::getPostRequestString(){
 }
 
 
+String Game::buildRequestString(String side){
+  String body = SIDE;
+  body += side;
+
+  String postRequest = POST_PREFIX;
+  postRequest += String(body.length());
+  postRequest += CRLF;
+  postRequest += CRLF;
+  postRequest += body;
+  return postRequest;
+}
+void Game:createRequest(String side) {
+  Serial1.println(COMMAND_START_TCP_CONNECTION);
+   delay(300);
+   Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
+   request = buildRequestString(side);
+   Serial1.println(request.length());
+}
+
 void Game::createRestartRequest() {
   Serial1.println(COMMAND_START_TCP_CONNECTION);
 
@@ -150,12 +169,14 @@ void Game::handleBallDetectors() {
 	if(ballDetectorA->isGoal()) {
 		increaseScoreA();
     createPostRequest();
+//    createRequest("A");
 //		tone(tonePinA, 500, 700);
     
 	}
 	if(ballDetectorB->isGoal()) {
 		increaseScoreB();
 		createPostRequest();
+//    createRequest("B");
 //		tone(tonePinB, 500, 700);
     
 	}

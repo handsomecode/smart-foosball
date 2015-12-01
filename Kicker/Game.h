@@ -95,6 +95,7 @@ private:
   #define CRLF "\r\n"
   #define SCORE_1 "score_1="
   #define SCORE_2 "score_2="
+  #define SIDE "side="
   #define POST_PREFIX "POST /index.php HTTP/1.1\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "
   bool isSending = false;
   /*< wifi*/
