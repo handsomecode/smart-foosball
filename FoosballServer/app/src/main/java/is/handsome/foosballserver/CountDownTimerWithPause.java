@@ -196,7 +196,7 @@ public abstract class CountDownTimerWithPause {
 
             synchronized (CountDownTimerWithPause.this) {
                 long millisLeft = timeLeft();
-                millisLeft = correctTimeRemaining(millisLeft);
+                millisLeft = correctRemainingTime(millisLeft);
 
                 if (millisLeft <= 0) {
                     cancel();
@@ -222,10 +222,9 @@ public abstract class CountDownTimerWithPause {
         }
     };
 
-    private long correctTimeRemaining(long time) {
-        double tempTime = ((double) time) / 1000;
-        double mod = tempTime - Math.floor(tempTime);
-        return (long) (mod < 0.5
-                ? Math.floor(tempTime) * 1000 : (Math.floor(tempTime) + 1) * 1000);
+    private long correctRemainingTime(long time) {
+        long tempTime = (time /1000) * 1000;
+        long mod = time - tempTime;
+        return mod < 500 ? tempTime : tempTime + 1000;
     }
 }
