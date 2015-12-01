@@ -200,6 +200,7 @@ public abstract class CountDownTimerWithPause {
 
                 if (millisLeft <= 0) {
                     cancel();
+                    onTick(millisLeft);
                     onFinish();
                 } else if (millisLeft < mCountdownInterval) {
                     // no tick, just delay until done

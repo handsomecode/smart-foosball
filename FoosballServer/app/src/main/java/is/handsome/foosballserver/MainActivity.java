@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onFinish() {
-            gameTimerTextView.setText("00:00");
+            //gameTimerTextView.setText("00:00");
         }
     };
 
