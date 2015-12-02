@@ -8,6 +8,7 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.Formatter;
@@ -33,9 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPDATE_INTERVAL = 1000;
     private static final boolean NOT_RUN_AFTER_CREATION = false;
 
-    @Bind(R.id.score_A_text_view) TextView scoreATextView;
-    @Bind(R.id.score_B_text_view) TextView scoreBTextView;
-    @Bind(R.id.ip_address_text_view) TextView ipAddressTextView;
+    //    @Bind(R.id.score_A_text_view) TextView scoreATextView;
+//    @Bind(R.id.score_B_text_view) TextView scoreBTextView;
+//    @Bind(R.id.ip_address_text_view) TextView ipAddressTextView;
     @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
     @Bind(R.id.score_a_scoreboard_double_view) ScoreboardDoubleView scoreboardADoubleView;
     @Bind(R.id.score_b_scoreboard_double_view) ScoreboardDoubleView scoreboardBDoubleView;
@@ -54,19 +55,19 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             int side = intent.getIntExtra(Server.SIDE, -1);
             if (side == Server.SIDE_A) {
-                if (countDownTimerWithPause.timeLeft() != 0) {
+//                if (countDownTimerWithPause.timeLeft() != 0) {
                     score.increaseSideA();
                     scoreboardADoubleView.next();
                     updateScoreViews();
                     playSoundEffect();
-                }
+//                }
             } else if (side == Server.SIDE_B) {
-                if (countDownTimerWithPause.timeLeft() != 0) {
+//                if (countDownTimerWithPause.timeLeft() != 0) {
                     score.increaseSideB();
                     scoreboardBDoubleView.next();
                     updateScoreViews();
                     playSoundEffect();
-                }
+//                }
             } else if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
                 score.reset();
                 updateScoreViews();
@@ -77,11 +78,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.content_scoreboard);
         ButterKnife.bind(this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        ipAddressTextView.setText(getIpAddress());
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        ipAddressTextView.setText(getIpAddress());
 
         // Set the hardware buttons to control the music
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -153,61 +156,42 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataReceiver);
+        countDownTimerWithPause.cancel();
     }
 
     @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
     @OnClick(R.id.game_timer_text_view)
     void onClickTimerView() {
-        if (countDownTimerWithPause.isRunning()) {
-            System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
-            countDownTimerWithPause.pause();
+        if (countDownTimerWithPause.timeLeft() != 0) {
+            if (countDownTimerWithPause.isRunning()) {
+                System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
+                countDownTimerWithPause.pause();
+            } else {
+                System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
+                countDownTimerWithPause.resume();
+            }
         } else {
-            System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
-            countDownTimerWithPause.resume();
+            startNewGame();
         }
     }
 
     @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.start_game_button)
+    @OnClick(R.id.logo_image_view)
     void onClickStartGame() {
-        score.reset();
-        updateScoreViews();
-        countDownTimerWithPause.cancel();
-        countDownTimerWithPause.create();
-        countDownTimerWithPause.resume();
+        if (countDownTimerWithPause.timeLeft() == 0) {
+            showTimerSetting();
+        }
+//        score.reset();
+//        updateScoreViews();
+//        countDownTimerWithPause.cancel();
+//        countDownTimerWithPause.create();
+//        countDownTimerWithPause.resume();
+
     }
 
-    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.increase_score_a_button)
-    void onClickIncreaseScoreA() {
-        score.increaseSideA();
-        scoreboardADoubleView.next();
-        updateScoreViews();
-    }
 
     @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.increase_score_b_button)
-    void onClickIncreaseScoreB() {
-        score.increaseSideB();
-        scoreboardBDoubleView.next();
-        updateScoreViews();
-    }
-
-    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.decrease_score_a_button)
-    void onClickDecreaseScoreA() {
-        score.decreaseSideA();
-        updateScoreViews();
-    }
-
-    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.decrease_score_b_button)
-    void onClickDecreaseScoreB() {
-        score.decreaseSideB();
-        updateScoreViews();
-    }
-
-    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
+    @Nullable
     @OnClick(R.id.set_timer_button)
     void onClickSetTimer() {
         RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
@@ -217,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                         long time = hourOfDay * 60 * 1000 + minute * 1000;
                         countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
                     }
-                }, 15, 12, true);
+                }, 5, 12, true);
         pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
         pickerFragment.show(getSupportFragmentManager(), "picker");
     }
@@ -236,8 +220,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateScoreViews() {
-        scoreATextView.setText(String.valueOf(score.getSideA()));
-        scoreBTextView.setText(String.valueOf(score.getSideB()));
+//        scoreATextView.setText(String.valueOf(score.getSideA()));
+//        scoreBTextView.setText(String.valueOf(score.getSideB()));
     }
 
     private void playSoundEffect() {
@@ -252,6 +236,28 @@ public class MainActivity extends AppCompatActivity {
             soundPool.play(soundId, volume, volume, 1, 0, 1f);
             Log.i("Test", "Played sound");
         }
+    }
+
+    private void startNewGame() {
+        scoreboardADoubleView.reset();
+        scoreboardBDoubleView.reset();
+        countDownTimerWithPause.cancel();
+        countDownTimerWithPause.create();
+        countDownTimerWithPause.resume();
+    }
+
+    private void showTimerSetting() {
+        RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
+                .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
+                        long time = hourOfDay * 60 * 1000 + minute * 1000;
+                        countDownTimerWithPause.cancel();
+                        countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+                    }
+                }, 5, 12, true);
+        pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
+        pickerFragment.show(getSupportFragmentManager(), "picker");
     }
 
 
@@ -273,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onFinish() {
-            Toast.makeText(MainActivity.this, "Game is over!", Toast.LENGTH_LONG).show();
+            gameTimerTextView.setText("СТАРТ");
         }
     }
 
