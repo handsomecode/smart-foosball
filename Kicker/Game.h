@@ -33,6 +33,8 @@ private:
   String getPostRequestString();
   String getRestartRequestString();
   void createRestartRequest();
+  String buildRequestString(String side);
+  void createRequest(String side);
 
   byte maxScore;
   byte scoreA;
@@ -89,7 +91,8 @@ private:
   
 //  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.5\",80"
 //  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"10.0.1.186\",8080"
-  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"192.168.43.1\",8080"
+//  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"192.168.43.1\",8080"
+  #define COMMAND_START_TCP_CONNECTION "AT+CIPSTART=\"TCP\",\"192.168.0.101\",8080"
   #define COMMAND_SEND_MESSAGE_SIZE "AT+CIPSENDEX="
   #define AMP "&"
   #define CRLF "\r\n"

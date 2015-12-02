@@ -131,7 +131,7 @@ String Game::buildRequestString(String side){
   postRequest += body;
   return postRequest;
 }
-void Game:createRequest(String side) {
+void Game::createRequest(String side) {
   Serial1.println(COMMAND_START_TCP_CONNECTION);
    delay(300);
    Serial1.print(COMMAND_SEND_MESSAGE_SIZE);
@@ -168,16 +168,18 @@ String Game::getRestartRequestString() {
 void Game::handleBallDetectors() {
 	if(ballDetectorA->isGoal()) {
 		increaseScoreA();
-    createPostRequest();
-//    createRequest("A");
-//		tone(tonePinA, 500, 700);
+//    createPostRequest();
+//    tone(tonePinA, 950, 400);
+    createRequest("A");
+//		tone(tonePinA, 500, 300);
     
 	}
 	if(ballDetectorB->isGoal()) {
 		increaseScoreB();
-		createPostRequest();
-//    createRequest("B");
-//		tone(tonePinB, 500, 700);
+//		createPostRequest();
+//    tone(tonePinB, 950, 400);
+    createRequest("B");
+//		tone(tonePinB, 500, 300);
     
 	}
 }

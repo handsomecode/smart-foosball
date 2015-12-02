@@ -21,9 +21,9 @@ public class Server extends NanoHTTPD {
     public static final String RESET = "reset_score";
     public static final int RESET_COMMAND = 1;
     public static final String SIDE = "side";
-    public static final int SIDE_A = 0;
-    public static final int SIDE_B = 1;
-    public static final int SIDE_UNDEFINED = 3;
+    public static final int SIDE_A = 2;
+    public static final int SIDE_B = 3;
+    public static final int SIDE_UNDEFINED = 4;
 
     public Server(Context context) throws IOException {
         super(PORT);

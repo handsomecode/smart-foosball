@@ -17,4 +17,15 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
+    <style name="MyCustomBetterPickersRadialTimePickerDialog">
+        <item name="bpMainColor1">@color/custom_tp_main1</item>
+        <item name="bpMainColor2">@color/custom_tp_main2</item>
+        <item name="bpAccentColor">@color/custom_tp_accent</item>
+        <item name="bpMainTextColor">@color/custom_tp_text</item>
+        <item name="bpDoneTextColor">@color/custom_tp_text</item>
+        <item name="bpLineColor">@color/custom_tp_divider</item>
+        <item name="bpDoneBackgroundColor">@color/st_timer_picker_bg</item>
+        <item name="bpSelectionAlpha">102</item>
+    </style>
+
 </resources>

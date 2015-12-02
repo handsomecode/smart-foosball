@@ -3,4 +3,10 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="custom_tp_main1">#292929</color>
+    <color name="custom_tp_main2">#333333</color>
+    <color name="custom_tp_accent">#acacac</color>
+    <color name="custom_tp_text">#ffffff</color>
+    <color name="custom_tp_divider">#808080</color>
 </resources>

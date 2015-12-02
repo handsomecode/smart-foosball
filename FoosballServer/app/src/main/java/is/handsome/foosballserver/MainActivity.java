@@ -8,7 +8,6 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.Formatter;
@@ -17,6 +16,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 
 import java.io.IOException;
 
@@ -44,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     private Server server;
     private Score score;
 
+    private long munutes;
+    private long seconds;
+
     private CountDownTimerWithPause countDownTimerWithPause = new CountDownTimerWithPause(TIME, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION) {
         @Override
         public void onTick(long millisUntilFinished) {
@@ -52,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onFinish() {
-            //gameTimerTextView.setText("00:00");
+            Toast.makeText(MainActivity.this, "Game is over!", Toast.LENGTH_LONG).show();
         }
     };
 
@@ -61,13 +66,17 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             int side = intent.getIntExtra(Server.SIDE, -1);
             if (side == Server.SIDE_A) {
-                score.increaseSideA();
-                updateScoreViews();
-                playSoundEffect();
+                if (countDownTimerWithPause.timeLeft() != 0) {
+                    score.increaseSideA();
+                    updateScoreViews();
+                    playSoundEffect();
+                }
             } else if (side == Server.SIDE_B) {
-                score.increaseSideB();
-                updateScoreViews();
-                playSoundEffect();
+                if (countDownTimerWithPause.timeLeft() != 0) {
+                    score.increaseSideB();
+                    updateScoreViews();
+                    playSoundEffect();
+                }
             } else if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
                 score.reset();
                 updateScoreViews();
@@ -205,10 +214,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @OnClick(R.id.reset_score_button)
-    void onClickResetScore() {
-        score.reset();
-        updateScoreViews();
+    @OnClick(R.id.set_timer_button)
+    void onClickSetTimer() {
+        RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
+                .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
+                        long time = hourOfDay * 60 * 1000 + minute * 1000;
+                        countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+                    }
+                }, 15, 12, true);
+        pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
+        pickerFragment.show(getSupportFragmentManager(), "picker");
     }
 
     private String getIpAddress() {
@@ -240,6 +257,29 @@ public class MainActivity extends AppCompatActivity {
         if (soundLoaded) {
             soundPool.play(soundId, volume, volume, 1, 0, 1f);
             Log.i("Test", "Played sound");
+        }
+    }
+
+
+    private class GameCountDownTimer extends CountDownTimerWithPause {
+        /**
+         * @param millisOnTimer
+         * @param countDownInterval The interval in millis at which to execute
+         *                          {@link #onTick(millisUntilFinished)} callbacks
+         * @param runAtStart        True if timer should start running, false if not
+         */
+        public GameCountDownTimer(long millisOnTimer, long countDownInterval, boolean runAtStart) {
+            super(millisOnTimer, countDownInterval, runAtStart);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            updateTimerView(millisUntilFinished);
+        }
+
+        @Override
+        public void onFinish() {
+            Toast.makeText(MainActivity.this, "Game is over!", Toast.LENGTH_LONG).show();
         }
     }
 

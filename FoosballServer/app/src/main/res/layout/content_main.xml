@@ -142,13 +142,13 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/reset_score_button"
+        android:id="@+id/set_timer_button"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_below="@+id/control_buttons_linear_layout"
         android:layout_marginTop="16dp"
         android:background="@drawable/st_reset_button_bg"
-        android:text="Cбросить счет"
+        android:text="Установить время игры"
         android:textColor="@android:color/background_light"
         android:textSize="18sp"/>
 </RelativeLayout>
