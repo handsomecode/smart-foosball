@@ -9,4 +9,5 @@
     <color name="custom_tp_accent">#acacac</color>
     <color name="custom_tp_text">#ffffff</color>
     <color name="custom_tp_divider">#808080</color>
+    <color name="game_timer_color">#FFFFFF</color>
 </resources>

@@ -23,12 +23,33 @@
         android:id="@+id/game_timer_text_view"
         android:layout_width="150dp"
         android:layout_height="48dp"
-        android:textSize="36sp"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/st_reset_button_bg"
         android:gravity="center"
         android:text="--:--"
-        android:background="@drawable/st_reset_button_bg"
         android:textColor="@android:color/background_light"
-        android:layout_centerHorizontal="true"/>
+        android:textSize="36sp"/>
+
+    <LinearLayout
+        android:id="@+id/scoreboard_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/game_timer_text_view"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <is.handsome.foosballserver.ScoreboardDoubleView
+            android:id="@+id/score_a_scoreboard_double_view"
+            android:layout_width="300dp"
+            android:layout_height="250dp"
+            android:layout_marginRight="25dp"/>
+
+        <is.handsome.foosballserver.ScoreboardDoubleView
+            android:id="@+id/score_b_scoreboard_double_view"
+            android:layout_width="300dp"
+            android:layout_height="250dp"
+            android:layout_marginLeft="25dp"/>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/score_linear_layout"
@@ -36,9 +57,10 @@
         android:layout_height="150dp"
         android:layout_below="@+id/ip_address_text_view"
         android:layout_centerInParent="true"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="32dp"
-        android:orientation="horizontal">
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/score_A_text_view"
@@ -69,7 +91,7 @@
         android:id="@+id/control_buttons_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/score_linear_layout"
+        android:layout_below="@+id/scoreboard_linear_layout"
         android:orientation="vertical">
 
         <Button
@@ -152,4 +174,5 @@
         android:text="Установить время игры"
         android:textColor="@android:color/background_light"
         android:textSize="18sp"/>
+
 </RelativeLayout>

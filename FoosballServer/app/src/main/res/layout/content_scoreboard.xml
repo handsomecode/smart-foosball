@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#333333"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/scoreboard_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="150.5dp"
+        android:layout_marginBottom="123dp"
+        android:gravity="center_horizontal"
+        android:paddingLeft="167dp"
+        android:paddingRight="167dp">
+
+        <is.handsome.foosballserver.ScoreboardDoubleView
+            android:id="@+id/score_a_scoreboard_double_view"
+            android:layout_width="306.5dp"
+            android:layout_height="300dp"
+            android:layout_marginRight="99.5dp"/>
+
+        <ImageView
+            android:layout_width="144dp"
+            android:layout_height="138.5dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/logo"/>
+
+        <is.handsome.foosballserver.ScoreboardDoubleView
+            android:id="@+id/score_b_scoreboard_double_view"
+            android:layout_width="306.5dp"
+            android:layout_height="300dp"
+            android:layout_marginLeft="99.5dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/game_timer_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:text="--:--"
+        android:textColor="@color/game_timer_color"
+        android:textSize="62sp"/>
+
+</LinearLayout>

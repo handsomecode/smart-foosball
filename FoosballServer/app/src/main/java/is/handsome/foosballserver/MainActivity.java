@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.score_B_text_view) TextView scoreBTextView;
     @Bind(R.id.ip_address_text_view) TextView ipAddressTextView;
     @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
+    @Bind(R.id.score_a_scoreboard_double_view) ScoreboardDoubleView scoreboardADoubleView;
+    @Bind(R.id.score_b_scoreboard_double_view) ScoreboardDoubleView scoreboardBDoubleView;
 
     private SoundPool soundPool;
     boolean soundLoaded;
@@ -54,12 +56,14 @@ public class MainActivity extends AppCompatActivity {
             if (side == Server.SIDE_A) {
                 if (countDownTimerWithPause.timeLeft() != 0) {
                     score.increaseSideA();
+                    scoreboardADoubleView.next();
                     updateScoreViews();
                     playSoundEffect();
                 }
             } else if (side == Server.SIDE_B) {
                 if (countDownTimerWithPause.timeLeft() != 0) {
                     score.increaseSideB();
+                    scoreboardBDoubleView.next();
                     updateScoreViews();
                     playSoundEffect();
                 }
@@ -177,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.increase_score_a_button)
     void onClickIncreaseScoreA() {
         score.increaseSideA();
+        scoreboardADoubleView.next();
         updateScoreViews();
     }
 
@@ -184,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.increase_score_b_button)
     void onClickIncreaseScoreB() {
         score.increaseSideB();
+        scoreboardBDoubleView.next();
         updateScoreViews();
     }
 
