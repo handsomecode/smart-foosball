@@ -29,8 +29,7 @@ import is.handsome.foosballserver.server.Server;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int TIME = 0 * 60 * 1000 + 12 * 1000;
-    private static final int MINUTE = 60;
+    private static final int GAME_TIME_DEFAULT = 5 * 60 * 1000 + 12 * 1000;
     private static final int UPDATE_INTERVAL = 1000;
     private static final boolean NOT_RUN_AFTER_CREATION = false;
 
@@ -46,20 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private Server server;
     private Score score;
 
-    private long munutes;
-    private long seconds;
-
-    private CountDownTimerWithPause countDownTimerWithPause = new CountDownTimerWithPause(TIME, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION) {
-        @Override
-        public void onTick(long millisUntilFinished) {
-            updateTimerView(millisUntilFinished);
-        }
-
-        @Override
-        public void onFinish() {
-            Toast.makeText(MainActivity.this, "Game is over!", Toast.LENGTH_LONG).show();
-        }
-    };
+    private CountDownTimerWithPause countDownTimerWithPause;
 
     private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
         @Override
@@ -108,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         soundId = soundPool.load(this, R.raw.gol_sound, 1);
 
         score = new Score();
+        countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
     }
 
     @Override
@@ -180,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.start_game_button)
     void onClickStartGame() {
         score.reset();
+        updateScoreViews();
         countDownTimerWithPause.cancel();
         countDownTimerWithPause.create();
         countDownTimerWithPause.resume();
@@ -235,9 +223,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateTimerView(long millisUntilFinished) {
-        System.out.println(String.valueOf(millisUntilFinished) + " " + millisUntilFinished / (MINUTE * UPDATE_INTERVAL) + " " + (millisUntilFinished / UPDATE_INTERVAL) % MINUTE);
-        long minutes = millisUntilFinished / (MINUTE * UPDATE_INTERVAL);
-        long seconds = (millisUntilFinished / UPDATE_INTERVAL) % MINUTE;
+        System.out.println(String.valueOf(millisUntilFinished) + " " + millisUntilFinished / (60 * UPDATE_INTERVAL) + " " + (millisUntilFinished / UPDATE_INTERVAL) % 60);
+        long minutes = millisUntilFinished / (60 * UPDATE_INTERVAL);
+        long seconds = (millisUntilFinished / UPDATE_INTERVAL) % 60;
         gameTimerTextView.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
@@ -265,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
         /**
          * @param millisOnTimer
          * @param countDownInterval The interval in millis at which to execute
-         *                          {@link #onTick(millisUntilFinished)} callbacks
+         *                          onTick(millisUntilFinished)} callbacks
          * @param runAtStart        True if timer should start running, false if not
          */
         public GameCountDownTimer(long millisOnTimer, long countDownInterval, boolean runAtStart) {

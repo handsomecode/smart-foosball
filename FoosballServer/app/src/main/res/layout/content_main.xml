@@ -25,6 +25,7 @@
         android:layout_height="48dp"
         android:textSize="36sp"
         android:gravity="center"
+        android:text="--:--"
         android:background="@drawable/st_reset_button_bg"
         android:textColor="@android:color/background_light"
         android:layout_centerHorizontal="true"/>
