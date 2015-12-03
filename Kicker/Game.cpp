@@ -170,7 +170,9 @@ void Game::handleBallDetectors() {
 		increaseScoreA();
 //    createPostRequest();
 //    tone(tonePinA, 950, 400);
-    createRequest("A");
+//    createRequest("A");
+    boolean b = false;
+    Serial.print(b);
 //		tone(tonePinA, 500, 300);
     
 	}
@@ -290,6 +292,8 @@ void Game::increaseScoreA() {
 
 void Game::increaseScoreB() {
 	scoreB++;
+  boolean b = true;
+    Serial.print(b);
 }
 
 void Game::decreaseScoreA() {

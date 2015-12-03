@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.net.wifi.WifiManager;
@@ -20,8 +22,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+import com.hoho.android.usbserial.util.HexDump;
+import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -40,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
     @Bind(R.id.score_a_scoreboard_double_view) ScoreboardDoubleView scoreboardADoubleView;
     @Bind(R.id.score_b_scoreboard_double_view) ScoreboardDoubleView scoreboardBDoubleView;
+    @Bind(R.id.output_text_view) TextView usbOutputTextView;
 
     private SoundPool soundPool;
     boolean soundLoaded;
@@ -49,6 +61,34 @@ public class MainActivity extends AppCompatActivity {
     private Score score;
 
     private CountDownTimerWithPause countDownTimerWithPause;
+
+
+    /**
+     *
+     */
+    private static UsbSerialPort sPort;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private SerialInputOutputManager mSerialIoManager;
+
+    private final SerialInputOutputManager.Listener mListener =
+            new SerialInputOutputManager.Listener() {
+
+                @Override
+                public void onRunError(Exception e) {
+                    Log.d("TAG", "Runner stopped.");
+                }
+
+                @Override
+                public void onNewData(final byte[] data) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.this.updateReceivedData(data);
+                        }
+                    });
+                }
+            };
 
     private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
         @Override
@@ -102,6 +142,24 @@ public class MainActivity extends AppCompatActivity {
 
         score = new Score();
         countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+
+//        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+//        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
+//        if (availableDrivers.isEmpty()) {
+//            Log.w("TAG", "USB devices not found");
+//        }
+//
+//        UsbSerialDriver driver = availableDrivers.get(0);
+//        UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
+//        if (connection == null) {
+//            // You probably need to call UsbManager.requestPermission(driver.getDevice(), ..)
+//            Log.w("TAG", "USB connection not establish");
+//        }
+//
+//        // Read some data! Most have just one port (port 0).
+//        UsbSerialPort port = driver.getPorts().get(0);
+//        Toast.makeText(this, )
+
     }
 
     @Override
@@ -141,6 +199,38 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+//        if (sPort == null) {
+//            usbOutputTextView.setText("No serial device.");
+//        } else {
+        final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        UsbSerialDriver driver = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).get(0);
+        sPort = driver.getPorts().get(0);
+
+
+            UsbDeviceConnection connection = usbManager.openDevice(sPort.getDriver().getDevice());
+            if (connection == null) {
+                usbOutputTextView.setText("Opening device failed");
+                return;
+            }
+
+            try {
+                sPort.open(connection);
+                sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            } catch (IOException e) {
+                Log.e("TAG", "Error setting up device: " + e.getMessage(), e);
+                usbOutputTextView.setText("Error opening device: " + e.getMessage());
+                try {
+                    sPort.close();
+                } catch (IOException e2) {
+                    // Ignore.
+                }
+                sPort = null;
+                return;
+            }
+            usbOutputTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
+//        }
+        onDeviceStateChange();
     }
 
     @Override
@@ -149,6 +239,16 @@ public class MainActivity extends AppCompatActivity {
         if (server != null) {
             server.stop();
             server = null;
+        }
+
+        stopIoManager();
+        if (sPort != null) {
+            try {
+                sPort.close();
+            } catch (IOException e) {
+                // Ignore.
+            }
+            sPort = null;
         }
     }
 
@@ -281,6 +381,53 @@ public class MainActivity extends AppCompatActivity {
         public void onFinish() {
             gameTimerTextView.setText("СТАРТ");
         }
+    }
+
+
+    private void updateReceivedData(byte[] data) {
+        String str = "";
+        try {
+            str = new String(data, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            usbOutputTextView.setText("FAIL");
+
+        }
+        int b = data[0] == 48 ? 0 : data[0] == 49 ? 1 : -1;
+
+        final String message = "Read " + data.length + " bytes: \n" + str + " " + b;
+//                + HexDump.dumpHexString(data) + "\n\n";
+        usbOutputTextView.setText(message);
+
+        if(b == 0) {
+            scoreboardADoubleView.next();
+            playSoundEffect();
+        }
+        if(b == 1) {
+            scoreboardBDoubleView.next();
+            playSoundEffect();
+        }
+    }
+
+    private void stopIoManager() {
+        if (mSerialIoManager != null) {
+            Log.i("TAG", "Stopping io manager ..");
+            mSerialIoManager.stop();
+            mSerialIoManager = null;
+        }
+    }
+
+    private void startIoManager() {
+        if (sPort != null) {
+            Log.i("TAG", "Starting io manager ..");
+            mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+            mExecutor.submit(mSerialIoManager);
+        }
+    }
+
+    private void onDeviceStateChange() {
+        stopIoManager();
+        startIoManager();
     }
 
 }
