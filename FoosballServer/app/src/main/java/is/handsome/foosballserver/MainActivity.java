@@ -1,21 +1,15 @@
 package is.handsome.foosballserver;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,7 +21,6 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,17 +28,15 @@ import java.util.concurrent.Executors;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import is.handsome.foosballserver.server.Server;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final long GAME_TIME_DEFAULT = 5 * 60 * 1000 + 12 * 1000;
     private static final int UPDATE_INTERVAL = 1000;
     private static final boolean NOT_RUN_AFTER_CREATION = false;
+    private static final int SIDE_A = 48;
+    private static final int SIDE_B = 49;
 
-    //    @Bind(R.id.score_A_text_view) TextView scoreATextView;
-//    @Bind(R.id.score_B_text_view) TextView scoreBTextView;
-//    @Bind(R.id.ip_address_text_view) TextView ipAddressTextView;
     @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
     @Bind(R.id.score_a_scoreboard_double_view) ScoreboardDoubleView scoreboardADoubleView;
     @Bind(R.id.score_b_scoreboard_double_view) ScoreboardDoubleView scoreboardBDoubleView;
@@ -55,12 +46,7 @@ public class MainActivity extends AppCompatActivity {
     boolean soundLoaded;
     private int soundId;
 
-    private Server server;
-    private Score score;
-
     private CountDownTimerWithPause countDownTimerWithPause;
-
-
     /**
      *
      */
@@ -88,30 +74,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-    private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int side = intent.getIntExtra(Server.SIDE, -1);
-            if (side == Server.SIDE_A) {
-//                if (countDownTimerWithPause.timeLeft() != 0) {
-                score.increaseSideA();
-                scoreboardADoubleView.next();
-                playSoundEffect();
-//                }
-            } else if (side == Server.SIDE_B) {
-//                if (countDownTimerWithPause.timeLeft() != 0) {
-                score.increaseSideB();
-                scoreboardBDoubleView.next();
-                playSoundEffect();
-//                }
-            } else if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
-                score.reset();
-                scoreboardADoubleView.reset();
-                scoreboardBDoubleView.reset();
-            }
-        }
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,14 +98,9 @@ public class MainActivity extends AppCompatActivity {
         });
         soundId = soundPool.load(this, R.raw.gol_sound, 1);
 
-        score = new Score();
         countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
     }
 
-    private void allowChangeScoreboard(boolean allowed) {
-        scoreboardADoubleView.setEnabled(allowed);
-        scoreboardBDoubleView.setEnabled(allowed);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -168,24 +125,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(dataReceiver, new IntentFilter(Server.INTENT_FILTER_ACTION));
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
-        try {
-            server = new Server(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-//        if (sPort == null) {
-//            usbOutputTextView.setText("No serial device.");
-//        } else {
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
@@ -193,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             UsbSerialDriver driver = availableDrivers.get(0);
             sPort = driver.getPorts().get(0);
-
 
             UsbDeviceConnection connection = usbManager.openDevice(sPort.getDriver().getDevice());
             if (connection == null) {
@@ -216,20 +156,13 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             usbOutputTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
-//        }
             onDeviceStateChange();
         }
-
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (server != null) {
-            server.stop();
-            server = null;
-        }
-
         stopIoManager();
         if (sPort != null) {
             try {
@@ -244,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(dataReceiver);
         countDownTimerWithPause.cancel();
     }
 
@@ -271,12 +203,10 @@ public class MainActivity extends AppCompatActivity {
     void onClickStartGame() {
         if (countDownTimerWithPause.timeLeft() == 0) {
             showTimerSetting();
-        }
-        else if(countDownTimerWithPause.isPaused()) {
+        } else if (countDownTimerWithPause.isPaused()) {
             refreshGame();
         }
     }
-
 
 
     private void updateTimerView(long millisUntilFinished) {
@@ -318,6 +248,11 @@ public class MainActivity extends AppCompatActivity {
         scoreboardADoubleView.reset();
         scoreboardBDoubleView.reset();
         gameTimerTextView.setText(R.string.start_label);
+    }
+
+    private void allowChangeScoreboard(boolean allowed) {
+        scoreboardADoubleView.setEnabled(allowed);
+        scoreboardBDoubleView.setEnabled(allowed);
     }
 
     private void showTimerSetting() {
@@ -362,25 +297,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void updateReceivedData(byte[] data) {
-        String str = "";
-        try {
-            str = new String(data, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            usbOutputTextView.setText("FAIL");
+        int side = data[0];
 
-        }
-        int b = data[0] == 48 ? 0 : data[0] == 49 ? 1 : -1;
-
-        final String message = "Read " + data.length + " bytes: \n" + str + " " + b;
-//                + HexDump.dumpHexString(data) + "\n\n";
-        usbOutputTextView.setText(message);
-
-        if (b == 0) {
+        if (side == SIDE_A) {
             scoreboardADoubleView.next();
             playSoundEffect();
-        }
-        if (b == 1) {
+        } else if (side == SIDE_B) {
             scoreboardBDoubleView.next();
             playSoundEffect();
         }
