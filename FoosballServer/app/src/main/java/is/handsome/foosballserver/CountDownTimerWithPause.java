@@ -227,4 +227,10 @@ public abstract class CountDownTimerWithPause {
         long mod = time - tempTime;
         return mod < 500 ? tempTime : tempTime + 1000;
     }
+
+    public void reset() {
+        mMillisInFuture = totalCountdown();
+        mPauseTimeRemaining = mStopTimeInFuture = 0;
+    }
+
 }

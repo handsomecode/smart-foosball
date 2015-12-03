@@ -8,12 +8,9 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +22,6 @@ import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFra
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
@@ -41,7 +37,7 @@ import is.handsome.foosballserver.server.Server;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int GAME_TIME_DEFAULT = 5 * 60 * 1000 + 12 * 1000;
+    private static final long GAME_TIME_DEFAULT = 5 * 60 * 1000 + 12 * 1000;
     private static final int UPDATE_INTERVAL = 1000;
     private static final boolean NOT_RUN_AFTER_CREATION = false;
 
@@ -59,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Server server;
     private Score score;
+    private long currentTimer;
+    boolean gameTimerRefreshed;
 
     private CountDownTimerWithPause countDownTimerWithPause;
 
@@ -96,21 +94,20 @@ public class MainActivity extends AppCompatActivity {
             int side = intent.getIntExtra(Server.SIDE, -1);
             if (side == Server.SIDE_A) {
 //                if (countDownTimerWithPause.timeLeft() != 0) {
-                    score.increaseSideA();
-                    scoreboardADoubleView.next();
-                    updateScoreViews();
-                    playSoundEffect();
+                score.increaseSideA();
+                scoreboardADoubleView.next();
+                playSoundEffect();
 //                }
             } else if (side == Server.SIDE_B) {
 //                if (countDownTimerWithPause.timeLeft() != 0) {
-                    score.increaseSideB();
-                    scoreboardBDoubleView.next();
-                    updateScoreViews();
-                    playSoundEffect();
+                score.increaseSideB();
+                scoreboardBDoubleView.next();
+                playSoundEffect();
 //                }
             } else if (intent.getIntExtra(Server.RESET, -1) == Server.RESET_COMMAND) {
                 score.reset();
-                updateScoreViews();
+                scoreboardADoubleView.reset();
+                scoreboardBDoubleView.reset();
             }
         }
     };
@@ -124,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//        ipAddressTextView.setText(getIpAddress());
 
         // Set the hardware buttons to control the music
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -141,25 +137,8 @@ public class MainActivity extends AppCompatActivity {
         soundId = soundPool.load(this, R.raw.gol_sound, 1);
 
         score = new Score();
+        currentTimer = GAME_TIME_DEFAULT;
         countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
-
-//        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-//        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
-//        if (availableDrivers.isEmpty()) {
-//            Log.w("TAG", "USB devices not found");
-//        }
-//
-//        UsbSerialDriver driver = availableDrivers.get(0);
-//        UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
-//        if (connection == null) {
-//            // You probably need to call UsbManager.requestPermission(driver.getDevice(), ..)
-//            Log.w("TAG", "USB connection not establish");
-//        }
-//
-//        // Read some data! Most have just one port (port 0).
-//        UsbSerialPort port = driver.getPorts().get(0);
-//        Toast.makeText(this, )
-
     }
 
     @Override
@@ -204,8 +183,12 @@ public class MainActivity extends AppCompatActivity {
 //            usbOutputTextView.setText("No serial device.");
 //        } else {
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        UsbSerialDriver driver = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager).get(0);
-        sPort = driver.getPorts().get(0);
+        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
+        if (availableDrivers.isEmpty()) {
+            Toast.makeText(this, "USB devices Not found", Toast.LENGTH_LONG).show();
+        } else {
+            UsbSerialDriver driver = availableDrivers.get(0);
+            sPort = driver.getPorts().get(0);
 
 
             UsbDeviceConnection connection = usbManager.openDevice(sPort.getDriver().getDevice());
@@ -230,7 +213,9 @@ public class MainActivity extends AppCompatActivity {
             }
             usbOutputTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
 //        }
-        onDeviceStateChange();
+            onDeviceStateChange();
+        }
+
     }
 
     @Override
@@ -281,47 +266,18 @@ public class MainActivity extends AppCompatActivity {
         if (countDownTimerWithPause.timeLeft() == 0) {
             showTimerSetting();
         }
-//        score.reset();
-//        updateScoreViews();
-//        countDownTimerWithPause.cancel();
-//        countDownTimerWithPause.create();
-//        countDownTimerWithPause.resume();
-
+        else if(countDownTimerWithPause.isPaused()) {
+            refreshGame();
+        }
     }
 
 
-    @SuppressWarnings("UnusedDeclaration") // used by ButterKnife
-    @Nullable
-    @OnClick(R.id.set_timer_button)
-    void onClickSetTimer() {
-        RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
-                .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
-                        long time = hourOfDay * 60 * 1000 + minute * 1000;
-                        countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
-                    }
-                }, 5, 12, true);
-        pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
-        pickerFragment.show(getSupportFragmentManager(), "picker");
-    }
-
-    private String getIpAddress() {
-        WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
-        int ip = wifiMgr.getConnectionInfo().getIpAddress();
-        return Formatter.formatIpAddress(ip);
-    }
 
     private void updateTimerView(long millisUntilFinished) {
         System.out.println(String.valueOf(millisUntilFinished) + " " + millisUntilFinished / (60 * UPDATE_INTERVAL) + " " + (millisUntilFinished / UPDATE_INTERVAL) % 60);
         long minutes = millisUntilFinished / (60 * UPDATE_INTERVAL);
         long seconds = (millisUntilFinished / UPDATE_INTERVAL) % 60;
         gameTimerTextView.setText(String.format("%02d:%02d", minutes, seconds));
-    }
-
-    private void updateScoreViews() {
-//        scoreATextView.setText(String.valueOf(score.getSideA()));
-//        scoreBTextView.setText(String.valueOf(score.getSideB()));
     }
 
     private void playSoundEffect() {
@@ -341,23 +297,35 @@ public class MainActivity extends AppCompatActivity {
     private void startNewGame() {
         scoreboardADoubleView.reset();
         scoreboardBDoubleView.reset();
+
         countDownTimerWithPause.cancel();
         countDownTimerWithPause.create();
         countDownTimerWithPause.resume();
     }
 
+    private void refreshGame() {
+        countDownTimerWithPause.cancel();
+        countDownTimerWithPause.reset();
+
+        scoreboardADoubleView.reset();
+        scoreboardBDoubleView.reset();
+        gameTimerTextView.setText(R.string.start_label);
+    }
+
     private void showTimerSetting() {
-        RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
-                .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
-                        long time = hourOfDay * 60 * 1000 + minute * 1000;
-                        countDownTimerWithPause.cancel();
-                        countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
-                    }
-                }, 5, 12, true);
-        pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
-        pickerFragment.show(getSupportFragmentManager(), "picker");
+        if (getSupportFragmentManager().findFragmentByTag("picker") == null) {
+            RadialTimePickerDialogFragment pickerFragment = RadialTimePickerDialogFragment
+                    .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
+                            currentTimer = hourOfDay * 60 * 1000 + minute * 1000;
+                            countDownTimerWithPause.cancel();
+                            countDownTimerWithPause = new GameCountDownTimer(currentTimer, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+                        }
+                    }, 5, 12, true);
+            pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
+            pickerFragment.show(getSupportFragmentManager(), "picker");
+        }
     }
 
 
@@ -379,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onFinish() {
-            gameTimerTextView.setText("СТАРТ");
+            gameTimerTextView.setText(R.string.start_label);
         }
     }
 
@@ -399,11 +367,11 @@ public class MainActivity extends AppCompatActivity {
 //                + HexDump.dumpHexString(data) + "\n\n";
         usbOutputTextView.setText(message);
 
-        if(b == 0) {
+        if (b == 0) {
             scoreboardADoubleView.next();
             playSoundEffect();
         }
-        if(b == 1) {
+        if (b == 1) {
             scoreboardBDoubleView.next();
             playSoundEffect();
         }
