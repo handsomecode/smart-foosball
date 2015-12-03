@@ -42,19 +42,21 @@ public class ScoreboardDoubleView : LinearLayout {
         }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        val motionEvent: MotionEvent = ev ?: return false
-        when (motionEvent.action) {
-            MotionEvent.ACTION_DOWN -> {
-                if (motionEvent.pointerCount > 1) return false
-                firstTap = PointF(motionEvent.rawX, motionEvent.rawY)
-                return true
-            }
-            MotionEvent.ACTION_UP -> {
-                if (firstTap == null) return false
-                if (firstTap!!.y - motionEvent.rawY > touchSlop) {
-                    currentValue--
-                } else if (motionEvent.rawY - firstTap!!.y > touchSlop) {
-                    currentValue++
+        if (isEnabled) {
+            val motionEvent: MotionEvent = ev ?: return false
+            when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    if (motionEvent.pointerCount > 1) return false
+                    firstTap = PointF(motionEvent.rawX, motionEvent.rawY)
+                    return true
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (firstTap == null) return false
+                    if (firstTap!!.y - motionEvent.rawY > touchSlop) {
+                        currentValue--
+                    } else if (motionEvent.rawY - firstTap!!.y > touchSlop) {
+                        currentValue++
+                    }
                 }
             }
         }

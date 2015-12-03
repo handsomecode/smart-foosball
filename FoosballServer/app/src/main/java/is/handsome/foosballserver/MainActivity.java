@@ -14,6 +14,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
     private Server server;
     private Score score;
-    private long currentTimer;
-    boolean gameTimerRefreshed;
 
     private CountDownTimerWithPause countDownTimerWithPause;
 
@@ -137,8 +137,12 @@ public class MainActivity extends AppCompatActivity {
         soundId = soundPool.load(this, R.raw.gol_sound, 1);
 
         score = new Score();
-        currentTimer = GAME_TIME_DEFAULT;
         countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+    }
+
+    private void allowChangeScoreboard(boolean allowed) {
+        scoreboardADoubleView.setEnabled(allowed);
+        scoreboardBDoubleView.setEnabled(allowed);
     }
 
     @Override
@@ -251,9 +255,11 @@ public class MainActivity extends AppCompatActivity {
             if (countDownTimerWithPause.isRunning()) {
                 System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
                 countDownTimerWithPause.pause();
+                allowChangeScoreboard(true);
             } else {
                 System.out.println("time remain = " + countDownTimerWithPause.timePassed() + " " + countDownTimerWithPause.timeLeft());
                 countDownTimerWithPause.resume();
+                allowChangeScoreboard(false);
             }
         } else {
             startNewGame();
@@ -301,6 +307,8 @@ public class MainActivity extends AppCompatActivity {
         countDownTimerWithPause.cancel();
         countDownTimerWithPause.create();
         countDownTimerWithPause.resume();
+
+        allowChangeScoreboard(false);
     }
 
     private void refreshGame() {
@@ -318,9 +326,9 @@ public class MainActivity extends AppCompatActivity {
                     .newInstance(new RadialTimePickerDialogFragment.OnTimeSetListener() {
                         @Override
                         public void onTimeSet(RadialTimePickerDialogFragment dialog, int hourOfDay, int minute) {
-                            currentTimer = hourOfDay * 60 * 1000 + minute * 1000;
+                            long time = hourOfDay * 60 * 1000 + minute * 1000;
                             countDownTimerWithPause.cancel();
-                            countDownTimerWithPause = new GameCountDownTimer(currentTimer, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+                            countDownTimerWithPause = new GameCountDownTimer(time, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
                         }
                     }, 5, 12, true);
             pickerFragment.setThemeCustom(R.style.MyCustomBetterPickersRadialTimePickerDialog);
@@ -348,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onFinish() {
             gameTimerTextView.setText(R.string.start_label);
+            allowChangeScoreboard(true);
         }
     }
 
