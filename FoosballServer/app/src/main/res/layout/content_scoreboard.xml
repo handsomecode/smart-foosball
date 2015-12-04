@@ -49,7 +49,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="83dp"
         android:gravity="center"
-        android:text="СТАРТ"
+        android:text="@string/start_label"
         android:textColor="@color/st_timer_text"
         android:textSize="62sp"/>
 </RelativeLayout>

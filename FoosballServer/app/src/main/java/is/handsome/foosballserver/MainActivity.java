@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private int soundId;
 
     private CountDownTimerWithPause countDownTimerWithPause;
+
+    private long currentTimer;
     /**
      *
      */
@@ -127,10 +131,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        if (currentTimer != 0) {
+            countDownTimerWithPause = new GameCountDownTimer(currentTimer, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+        } else {
+            countDownTimerWithPause = new GameCountDownTimer(GAME_TIME_DEFAULT, UPDATE_INTERVAL, NOT_RUN_AFTER_CREATION);
+        }
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
-            Toast.makeText(this, "USB devices Not found", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "USB devices Not found", Toast.LENGTH_SHORT).show();
         } else {
             UsbSerialDriver driver = availableDrivers.get(0);
             sPort = driver.getPorts().get(0);
@@ -177,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        currentTimer = countDownTimerWithPause.timeLeft();
         countDownTimerWithPause.cancel();
     }
 
@@ -217,16 +227,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playSoundEffect() {
-        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        float actualVolume = (float) audioManager
-                .getStreamVolume(AudioManager.STREAM_MUSIC);
-        float maxVolume = (float) audioManager
-                .getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        float volume = actualVolume / maxVolume;
-        // Is the sound already?
-        if (soundLoaded) {
-            soundPool.play(soundId, volume, volume, 1, 0, 1f);
-            Log.i("Test", "Played sound");
+        if (scoreboardADoubleView.getCurrentValue() == 1 || scoreboardBDoubleView.getCurrentValue() == 1 ||
+                Math.abs(scoreboardADoubleView.getCurrentValue() - scoreboardBDoubleView.getCurrentValue()) == 1) {
+            AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+            float actualVolume = (float) audioManager
+                    .getStreamVolume(AudioManager.STREAM_MUSIC);
+            float maxVolume = (float) audioManager
+                    .getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            float volume = actualVolume / maxVolume;
+            // Is the sound already?
+            if (soundLoaded) {
+                soundPool.play(soundId, volume, volume, 1, 0, 1f);
+                Log.i("Test", "Played sound");
+            }
         }
     }
 
@@ -299,12 +312,14 @@ public class MainActivity extends AppCompatActivity {
     private void updateReceivedData(byte[] data) {
         int side = data[0];
 
-        if (side == SIDE_A) {
-            scoreboardADoubleView.next();
-            playSoundEffect();
-        } else if (side == SIDE_B) {
-            scoreboardBDoubleView.next();
-            playSoundEffect();
+        if (countDownTimerWithPause.isRunning()) {
+            if (side == SIDE_A) {
+                scoreboardADoubleView.next();
+                playSoundEffect();
+            } else if (side == SIDE_B) {
+                scoreboardBDoubleView.next();
+                playSoundEffect();
+            }
         }
     }
 
