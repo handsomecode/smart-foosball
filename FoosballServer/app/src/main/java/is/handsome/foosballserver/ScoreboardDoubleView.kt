@@ -42,7 +42,7 @@ public class ScoreboardDoubleView : LinearLayout {
         }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-        if (isEnabled) {
+        if (isEnabled && firstDigit.isEnabled && secondDigit.isEnabled) {
             val motionEvent: MotionEvent = ev ?: return false
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {

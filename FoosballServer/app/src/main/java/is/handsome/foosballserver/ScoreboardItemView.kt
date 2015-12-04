@@ -105,6 +105,7 @@ public class ScoreboardItemView : LinearLayout {
     }
 
     private fun animateCountUp() {
+        isEnabled = false
         frontTopImage.animate().cancel()
         frontBottomImage.animate().cancel()
         bottomOverlayView.animate().cancel()
@@ -139,6 +140,7 @@ public class ScoreboardItemView : LinearLayout {
                             .setStartDelay(animationTime)
                             .setDuration(animationTime)
                             .withEndAction {
+                                isEnabled = true
                                 bottomOverlayView.alpha = 0f
                             }
                             .start()
@@ -146,6 +148,7 @@ public class ScoreboardItemView : LinearLayout {
     }
 
     private fun animateCountDown() {
+        isEnabled = false
         frontTopImage.animate().cancel()
         frontBottomImage.animate().cancel()
         topOverlayView.animate().cancel()
@@ -182,6 +185,7 @@ public class ScoreboardItemView : LinearLayout {
                             .setDuration(animationTime)
                             .withEndAction {
                                 topOverlayView.alpha = 0f
+                                isEnabled = true
                             }
                             .start()
                 }.start()

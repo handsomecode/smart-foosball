@@ -169,7 +169,7 @@ void Game::handleBallDetectors() {
 	if(ballDetectorA->isGoal()) {
 		increaseScoreA();
 //    createPostRequest();
-//    tone(tonePinA, 950, 400);
+    tone(tonePinA, 950, 400);
 //    createRequest("A");
     boolean b = false;
     Serial.print(b);
@@ -179,7 +179,7 @@ void Game::handleBallDetectors() {
 	if(ballDetectorB->isGoal()) {
 		increaseScoreB();
 //		createPostRequest();
-//    tone(tonePinB, 950, 400);
+    tone(tonePinB, 950, 400);
     createRequest("B");
 //		tone(tonePinB, 500, 300);
     

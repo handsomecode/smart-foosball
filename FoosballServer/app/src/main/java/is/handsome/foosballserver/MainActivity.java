@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.game_timer_text_view) TextView gameTimerTextView;
     @Bind(R.id.score_a_scoreboard_double_view) ScoreboardDoubleView scoreboardADoubleView;
     @Bind(R.id.score_b_scoreboard_double_view) ScoreboardDoubleView scoreboardBDoubleView;
-    @Bind(R.id.output_text_view) TextView usbOutputTextView;
+//    @Bind(R.id.output_text_view) TextView usbOutputTextView;
 
     private SoundPool soundPool;
     boolean soundLoaded;
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
             UsbDeviceConnection connection = usbManager.openDevice(sPort.getDriver().getDevice());
             if (connection == null) {
-                usbOutputTextView.setText("Opening device failed");
+//                usbOutputTextView.setText("Opening device failed");
                 return;
             }
 
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             } catch (IOException e) {
                 Log.e("TAG", "Error setting up device: " + e.getMessage(), e);
-                usbOutputTextView.setText("Error opening device: " + e.getMessage());
+//                usbOutputTextView.setText("Error opening device: " + e.getMessage());
                 try {
                     sPort.close();
                 } catch (IOException e2) {
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 sPort = null;
                 return;
             }
-            usbOutputTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
+//            usbOutputTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
             onDeviceStateChange();
         }
     }
