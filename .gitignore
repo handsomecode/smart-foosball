@@ -32,3 +32,4 @@
 *.dSYM/
 
 .DS_Store
+libraries

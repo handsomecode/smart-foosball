@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true"
+          android:state_pressed="false"
+          android:color="@color/custom_tp_main2" />
+
+    <item android:state_pressed="true"
+          android:color="@color/custom_tp_accent" />
+
+    <item android:color="@color/custom_tp_main1" />
+</selector>
